@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827"><title>SobhanRPlay | بازی کن!</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151e32;--line:#293650;--text:#f4f7ff;--muted:#a9b6cc;--accent:#7c9cff;--good:#42d6a4}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#1d2b52 0,transparent 38%),var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+header{padding:28px 18px 18px;text-align:center}h1{font-size:clamp(30px,6vw,48px);margin:0 0 10px}h1 span{color:var(--accent)}header p{color:var(--muted);margin:0}
+main{max-width:1100px;margin:auto;padding:12px 18px 50px}.top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:12px 0 18px}
+input{background:#0d1528;border:1px solid var(--line);color:white;border-radius:12px;padding:12px 14px;font:inherit;min-width:220px;flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.game{background:linear-gradient(145deg,#18243b,#111a2c);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:right;cursor:pointer;color:inherit;transition:.18s}
+.game:hover{transform:translateY(-3px);border-color:var(--accent)}.emoji{font-size:28px}.game h3{margin:8px 0 5px}.game p{margin:0;color:var(--muted);font-size:13px}
+button{font:inherit;border:0;border-radius:12px;padding:11px 17px;background:var(--accent);color:#081126;font-weight:bold;cursor:pointer}button.secondary{background:#26344e;color:var(--text)}button:disabled{opacity:.45;cursor:not-allowed}
+#play{display:none;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;margin:18px 0}#play h2{margin:0 0 8px}.muted{color:var(--muted)}#arena{min-height:170px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;margin:16px 0}
+#arena input{max-width:300px;flex:initial;width:100%;text-align:center}.choices{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}.big{font-size:42px;font-weight:bold}.status{color:var(--good);min-height:24px}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:28px}
+@media(max-width:520px){header{padding-top:20px}.top{align-items:stretch}#play{padding:15px}}
+</style></head>
+<body>
+<header><h1>🎮 <span>SobhanR</span>Play</h1><p>۲۰ بازی جذاب و تک‌نفره؛ رایگان و بدون نصب!</p></header>
+<main><div class="top"><div><b>بازی مورد علاقه‌ات را انتخاب کن</b><div class="muted" style="font-size:13px;margin-top:5px">رکوردها روی همین دستگاه ذخیره می‌شوند.</div></div><input id="search" placeholder="🔎 جست‌وجوی بازی..." oninput="filterGames()"></div>
+<section id="play"><button class="secondary" onclick="back()">← بازگشت به بازی‌ها</button><h2 id="gameTitle"></h2><div class="muted" id="gameDesc"></div><div id="arena"></div><div class="status" id="status" aria-live="polite"></div></section>
+<section class="grid" id="games"></section><div class="foot">ساخته‌شده با ❤️ برای SobhanRPlay</div></main>
+<script>
+const games=[
+['🎯','هدف‌گیری','روی هدف کلیک کن','target'],['🔢','حدس عدد','عدد مخفی را پیدا کن','guess'],['🧠','حافظه','ترتیب رنگ‌ها را به خاطر بسپار','memory'],['⚡','سرعت واکنش','به‌محض سبز شدن کلیک کن','reaction'],['➕','حساب سریع','جواب جمع را پیدا کن','math'],['⌨️','تایپ سریع','کلمه را سریع تایپ کن','type'],['🎨','شناخت رنگ','نام رنگ درست را انتخاب کن','color'],['✊','سنگ کاغذ قیچی','با رایانه بازی کن','rps'],['🎲','تاس','تاس بینداز و امتیاز بگیر','dice'],['🪙','شیر یا خط','حدس بزن سکه چه می‌آید','coin'],['📈','بالاتر یا پایین‌تر','حدس بزن عدد بعدی بزرگ‌تر است یا کوچک‌تر','higher'],['🔤','کلمه به‌هم‌ریخته','حروف را مرتب کن','scramble'],['👀','شمارش سریع','تعداد شکل‌ها را بشمار','count'],['🧩','الگوی عددی','عدد بعدی الگو را پیدا کن','pattern'],['🔍','پیدا کردن متفاوت','شکل متفاوت را پیدا کن','odd'],['🏁','شمارش معکوس','قبل از تمام شدن زمان کلیک کن','timer'],['🎯','دقت کلیک','در ۱۰ ثانیه چند بار می‌توانی بزنی؟','clicker'],['📚','دانش عمومی','به پرسش کوتاه پاسخ بده','quiz'],['🔐','رمزگشا','رمز سه‌رقمی را حدس بزن','code'],['🌟','شانس ستاره‌ای','ستاره پنهان را پیدا کن','star']
+];
+const $=id=>document.getElementById(id);let current=null,score=0,secret=0,interval=null,timeout=null,started=0,sequence=[],step=0;
+function render(){ $('games').innerHTML=games.map((g,i)=>'<button class="game" data-name="'+g[1]+'" onclick="startGame('+i+')"><div class="emoji">'+g[0]+'</div><h3>'+g[1]+'</h3><p>'+g[2]+'</p></button>').join('')}
+function filterGames(){let q=$('search').value.trim();document.querySelectorAll('.game').forEach(el=>el.style.display=el.dataset.name.includes(q)?'block':'none')}
+function stop(){clearInterval(interval);clearTimeout(timeout);interval=timeout=null}
+function back(){stop();$('play').style.display='none';$('games').style.display='grid';$('search').parentElement.style.display='flex'}
+function setup(i){current=games[i];stop();$('games').style.display='none';$('search').parentElement.style.display='none';$('play').style.display='block';$('gameTitle').textContent=current[0]+' '+current[1];$('gameDesc').textContent=current[2];$('status').textContent='';$('arena').innerHTML='';score=0;
+const btn=(label,fn)=>{let b=document.createElement('button');b.textContent=label;b.onclick=fn;$('arena').append(b);return b};
+const input=(placeholder='پاسخت را بنویس')=>{let x=document.createElement('input');x.placeholder=placeholder;$('arena').append(x);return x};
+const msg=t=>$('status').textContent=t;
+switch(current[3]){
+case'target':{let n=0;let b=btn('🎯 بزن!',()=>{n++;b.textContent='🎯 امتیاز: '+n;msg('آفرین! ادامه بده.')});break}
+case'guess':secret=1+Math.floor(Math.random()*100);{let x=input('یک عدد از ۱ تا ۱۰۰');btn('بررسی',()=>{let v=+x.value;if(!v||v>100){msg('یک عدد معتبر وارد کن.');return}msg(v===secret?'🎉 درست حدس زدی!':v<secret?'عدد بزرگ‌تری بگو.':'عدد کوچک‌تری بگو.')});break}
+case'memory':sequence=Array.from({length:5},()=>Math.floor(Math.random()*4));step=0;$('arena').innerHTML='<div class="big">🔴 🟢 🔵 🟡</div><p>ترتیب شماره رنگ‌ها: '+sequence.map(x=>x+1).join(' - ')+'</p>';timeout=setTimeout(()=>{$('arena').innerHTML='';let x=input('شماره‌ها را پشت سر هم بنویس');btn('بررسی',()=>msg(x.value.replace(/\s/g,'')===sequence.map(v=>v+1).join('')?'عالی! حافظه‌ات قویه.':'این بار درست نشد؛ دوباره تلاش کن.'))},3500);break;
+case'reaction':$('arena').textContent='صبر کن تا سبز شود...';timeout=setTimeout(()=>{$('arena').innerHTML='';let b=btn('حالا کلیک کن!',()=>msg('زمان واکنش: '+(Date.now()-started-2000)+' میلی‌ثانیه'));b.style.background='#42d6a4';started=Date.now()},2000);break;
+case'math':{let a=2+Math.floor(Math.random()*48),b=2+Math.floor(Math.random()*48),x=input(a+' + '+b+' = ؟');btn('جواب',()=>msg(+x.value===a+b?'درست است! 👏':'جواب درست: '+(a+b)));break}
+case'type':{let words=['آسمان','کتاب','دوستی','بازی','کامپیوتر','ستاره'];let w=words[Math.floor(Math.random()*words.length)];$('arena').innerHTML='<div class="big">'+w+'</div>';let x=input('کلمه را تایپ کن');btn('بررسی',()=>msg(x.value===w?'عالی تایپ کردی!':'دوباره تلاش کن.'));break}
+case'color':{let cs=['قرمز','آبی','سبز','زرد'];let c=cs[Math.floor(Math.random()*4)];$('arena').innerHTML='<div class="big">'+c+'</div><p>این کلمه چه رنگی است؟</p>';cs.sort(()=>Math.random()-.5).forEach(v=>btn(v,()=>msg(v===c?'درست گفتی!':'اشتباه شد؛ دوباره بازی کن.')));break}
+case'rps':{['✊ سنگ','✋ کاغذ','✌️ قیچی'].forEach((v,i)=>btn(v,()=>{let c=Math.floor(Math.random()*3);msg(['مساوی!','بردی! 🎉','باختی؛ دوباره تلاش کن.'][(i-c+3)%3===0?0:(i-c+3)%3===1?1:2]+' انتخاب رایانه: '+['سنگ','کاغذ','قیچی'][c])}));break}
+case'dice':btn('🎲 تاس بینداز',()=>msg('عدد تاس: '+(1+Math.floor(Math.random()*6))));break;
+case'coin':['شیر','خط'].forEach(v=>btn(v,()=>{let c=Math.random()<.5?'شیر':'خط';msg('نتیجه: '+c+(v===c?'؛ آفرین، درست حدس زدی!':'؛ این بار نشد.'))}));break;
+case'higher':secret=1+Math.floor(Math.random()*10);$('arena').innerHTML='<div class="big">'+secret+'</div><p>عدد بعدی بین ۱ تا ۱۰ است. بزرگ‌تر یا کوچک‌تر؟</p>';['بزرگ‌تر','کوچک‌تر'].forEach((v,i)=>btn(v,()=>{let n=1+Math.floor(Math.random()*10);msg('عدد بعدی '+n+' بود؛ '+(n===secret?'برابر شد!':(n>secret)===(i===0)?'درست حدس زدی!':'حدست درست نبود.'))}));break;
+case'scramble':{let pairs=[['باتک','کتاب'],['زیبا','بازی'],['راتس','ستار'],['تسود','دوست']];let p=pairs[Math.floor(Math.random()*pairs.length)],x=input('کلمه درست');$('arena').innerHTML='<div class="big">'+p[0]+'</div>'; $('arena').append(x);btn('بررسی',()=>msg(x.value===p[1]?'آفرین!':'پاسخ: '+p[1]));break}
+case'count':{let n=3+Math.floor(Math.random()*8);$('arena').innerHTML='<div class="big">'+('⭐'.repeat(n))+'</div>';let x=input('چند ستاره دیدی؟');btn('بررسی',()=>msg(+x.value===n?'درست شمردی!':'تعداد درست '+n+' بود.'));break}
+case'pattern':{let a=2+Math.floor(Math.random()*8),d=2+Math.floor(Math.random()*5),x=input('عدد بعدی چیست؟');$('arena').innerHTML='<div class="big">'+[a,a+d,a+2*d,a+3*d].join('، ')+'</div>'; $('arena').append(x);btn('بررسی',()=>msg(+x.value===a+4*d?'الگو را پیدا کردی!':'پاسخ '+(a+4*d)+' است.'));break}
+case'odd':{let odd=Math.floor(Math.random()*9);for(let j=0;j<9;j++)btn(j===odd?'🍎':'🍏',()=>msg(j===odd?'پیداش کردی!':'این یکی متفاوت نیست.'));break}
+case'timer':{let n=5;$('arena').innerHTML='<div class="big" id="countdown">۵</div>';interval=setInterval(()=>{n--;$('countdown').textContent=n;if(n<=0){stop();msg('زمان تمام شد!')}},1000);break}
+case'clicker':{let n=0,b=btn('هرچه می‌توانی کلیک کن!',()=>{n++;b.textContent='کلیک‌ها: '+n});started=Date.now();timeout=setTimeout(()=>{b.disabled=true;msg('در ۱۰ ثانیه '+n+' بار کلیک کردی!')},10000);break}
+case'quiz':{let qs=[['بزرگ‌ترین سیاره منظومه شمسی؟','مشتری',['زمین','مریخ','مشتری']],['یک هفته چند روز دارد؟','۷',['۵','۶','۷']],['حاصل ۶×۷؟','۴۲',['۳۶','۴۲','۴۸']]];let q=qs[Math.floor(Math.random()*qs.length)];$('arena').innerHTML='<p>'+q[0]+'</p>';q[2].forEach(v=>btn(v,()=>msg(v===q[1]?'پاسخ درست است!':'پاسخ درست: '+q[1])));break}
+case'code':secret=100+Math.floor(Math.random()*900);{let x=input('رمز سه‌رقمی');btn('باز کردن قفل',()=>{let v=+x.value;msg(v===secret?'🔓 قفل باز شد!':v<secret?'رمز بزرگ‌تری است.':'رمز کوچک‌تری است.')});break}
+case'star':{let win=Math.floor(Math.random()*6);for(let j=0;j<6;j++)btn(j===win?'🌟':'☁️',()=>msg(j===win?'⭐ پیداش کردی! برنده شدی!':'اینجا نبود؛ یک جای دیگر را امتحان کن.'));break}
+}}
+function startGame(i){setup(i)}render();
+</script></body></html>
