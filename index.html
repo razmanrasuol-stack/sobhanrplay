@@ -32,6 +32,11 @@ button.secondary{background:#26344e;color:var(--text);box-shadow:none}button:dis
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media(max-width:520px){header{padding-top:24px}.top{align-items:stretch;padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game{padding:14px;min-height:120px}#play{padding:14px}#arena{padding:17px 10px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+#resultOverlay{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;padding:20px;background:#050914d9;backdrop-filter:blur(9px);animation:fadeIn .2s ease}
+.result-card{width:min(100%,390px);text-align:center;padding:30px 22px;border:1px solid #ff668866;border-radius:25px;background:linear-gradient(145deg,#392039,#171d32);box-shadow:0 20px 70px #0009;animation:popIn .28s ease-out}
+.result-card .lose-emoji{font-size:66px;animation:shake .45s ease}.result-card h2{font-size:36px;color:#ff8495;margin:10px 0}.result-card p{color:#e8dce5;line-height:1.8;margin:8px 0 20px}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}40%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}}
 </style></head>
 <body>
 <header><h1>🎮 <span>SobhanR</span>Play</h1><p>۲۵ بازی جذاب و تک‌نفره؛ رایگان و بدون نصب!</p></header>
@@ -51,7 +56,9 @@ function replayGame(){if(current){setup(games.indexOf(current));}}
 function setup(i){current=games[i];stop();$('games').style.display='none';$('search').parentElement.style.display='none';$('play').style.display='block';$('gameTitle').textContent=current[0]+' '+current[1];$('gameDesc').textContent=current[2];$('status').textContent='';$('arena').innerHTML='';score=0;
 const btn=(label,fn)=>{let b=document.createElement('button');b.textContent=label;b.onclick=fn;$('arena').append(b);return b};
 const input=(placeholder='پاسخت را بنویس')=>{let x=document.createElement('input');x.placeholder=placeholder;$('arena').append(x);return x};
-const msg=t=>$('status').textContent=t;
+function playLoseSound(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),now=c.currentTime;[440,330,220].forEach((hz,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(hz,now+i*.16);g.gain.setValueAtTime(.0001,now+i*.16);g.gain.exponentialRampToValueAtTime(.16,now+i*.16+.025);g.gain.exponentialRampToValueAtTime(.0001,now+i*.16+.22);o.connect(g);g.connect(c.destination);o.start(now+i*.16);o.stop(now+i*.16+.24)});setTimeout(()=>c.close(),900)}catch(e){}}
+function showLose(t){document.getElementById('resultOverlay')?.remove();playLoseSound();const layer=document.createElement('div');layer.id='resultOverlay';layer.innerHTML='<div class="result-card"><div class="lose-emoji">😵‍💫</div><h2>باختی!</h2><p>'+t+'</p><div class="game-actions"><button id="overlayReplay">🔄 دوباره بازی کن</button><button class="secondary" id="overlayBack">📋 فهرست بازی‌ها</button></div></div>';document.body.append(layer);document.getElementById('overlayReplay').onclick=()=>{layer.remove();replayGame()};document.getElementById('overlayBack').onclick=()=>{layer.remove();back()}}
+const msg=t=>{$('status').textContent=t;if(/باختی|درست نشد|درست نبود|اشتباه شد|جواب درست:|پاسخ درست:|زمان تمام شد|اینجا نبود|این یکی متفاوت نیست|این بار رایانه برنده شد|حدست درست نبود/.test(t))showLose(t)};
 switch(current[3]){
 case'target':{let n=0;let b=btn('🎯 بزن!',()=>{n++;b.textContent='🎯 امتیاز: '+n;msg('آفرین! ادامه بده.')});break}
 case'guess':secret=1+Math.floor(Math.random()*100);{let x=input('یک عدد از ۱ تا ۱۰۰');btn('بررسی',()=>{let v=+x.value;if(!v||v>100){msg('یک عدد معتبر وارد کن.');return}msg(v===secret?'🎉 درست حدس زدی!':v<secret?'عدد بزرگ‌تری بگو.':'عدد کوچک‌تری بگو.')});break}
