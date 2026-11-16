@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دایی سرهنگ | مرحله ۳ - بازار لارستان</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f6efe2;font-family:Tahoma,Arial}
+header{padding:14px 20px;background:#091523;color:#e8bd68;font-size:20px;font-weight:bold;display:flex;justify-content:space-between;gap:10px;align-items:center}
+header a{color:#f5d99f;text-decoration:none;font-size:13px}
+main{max-width:1250px;margin:16px auto;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px}
+#stage{position:relative;overflow:hidden;border:1px solid #53677e;border-radius:15px}
+canvas{display:block;width:100%;height:66vh;min-height:370px;touch-action:none}
+.hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
+.pill{background:#091626e8;border:1px solid #52677b;border-radius:20px;padding:9px 12px;font-size:12px}
+aside{background:#1a2d45;border:1px solid #40546d;border-radius:14px;padding:16px}
+aside h2{font-size:18px;color:#e8bd68}aside p{font-size:13px;line-height:2;color:#dce5ee}
+.task{padding:11px;background:#102035;border-radius:10px;font-size:13px;line-height:2;margin:12px 0}
+.gold{color:#e8bd68}
+.overlay{position:absolute;inset:0;background:#07111de8;display:grid;place-items:center;padding:16px;z-index:4}
+.dialog{max-width:470px;background:#182b46;border:1px solid #71849b;border-radius:16px;padding:22px;text-align:center;line-height:2;box-shadow:0 18px 70px #0008}
+.dialog h1{margin:0;color:#e8bd68}.dialog p{font-size:14px;color:#dce5ee}
+button{border:0;border-radius:9px;background:#e8bd68;color:#172235;font-weight:bold;padding:12px 20px;cursor:pointer}
+.mobile{display:none;text-align:center;padding:8px}.mobile button{margin:3px;min-width:48px;touch-action:none}
+@media(max-width:850px){main{grid-template-columns:1fr}.mobile{display:block}canvas{height:55vh;min-height:320px}}
+</style></head>
+<body>
+<header><span>🕵️ دایی سرهنگ | مرحله ۳: بازار لارستان</span><a href="police-station.html">بازگشت به اداره</a></header>
+<main><section>
+<div id="stage"><canvas id="game"></canvas>
+<div class="hud"><div class="pill" id="objective">مرحله ۳ از ۵ · پیدا کردن شاهدها</div><div class="pill" id="progress">گفت‌وگو: ۰ از ۲</div></div>
+<div class="overlay" id="intro"><div class="dialog"><h1>بازار بزرگ لارستان</h1><p>سروان نادر گفته دو نفر در بازار خودروی آبی را دیده‌اند. در بازار قدم بزن و با هر دو شاهد صحبت کن.</p><p>حرکت: WASD یا کلیدهای جهت‌دار<br>گفت‌وگو: نزدیک شاهد شو و E را بزن</p><button id="start">ورود به بازار</button></div></div>
+<div class="overlay" id="complete" style="display:none"><div class="dialog"><h1>شاهدها پیدا شدند!</h1><p id="summary">دو گزارش ثبت شد.</p><button id="next">رفتن به مرحله چهارم</button></div></div>
+</div>
+<div class="mobile"><button data-key="ArrowLeft">◀</button><button data-key="ArrowUp">▲</button><button data-key="ArrowDown">▼</button><button data-key="ArrowRight">▶</button><button id="touchE">E گفت‌وگو</button></div>
+</section>
+<aside><h2>پروندهٔ خودروی آبی</h2><p>بعد از بررسی مدارک در اداره پلیس، حالا باید حرف شاهدهای بازار را بشنوی. عجله نکن؛ هر شاهد بخشی از ماجرا را دیده است.</p>
+<div class="task"><b class="gold">شاهد اول: فروشنده بازار</b><br>می‌گوید خودرو از جلوی ورودی بازار عبور کرده است.</div>
+<div class="task"><b class="gold">شاهد دوم: رهگذر</b><br>رنگ خودرو و مسیر حرکتش را به خاطر دارد، اما ساعت دقیق را مطمئن نیست.</div>
+<p style="font-size:11px;color:#afc0d0">این مرحله یک محیط سه‌بعدی قابل‌بازی است. با E فقط وقتی به شاهد نزدیک باشی می‌توانی گفت‌وگو کنی.</p></aside></main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const canvas=document.querySelector('#game'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x1a293d);scene.fog=new THREE.Fog(0x24344a,32,85);
+const camera=new THREE.PerspectiveCamera(62,1,.1,150);
+scene.add(new THREE.HemisphereLight(0xc1d3e6,0x604d39,1.8));
+const sun=new THREE.DirectionalLight(0xffd39a,2.2);sun.position.set(-12,25,10);sun.castShadow=true;scene.add(sun);
+const mat=(c,r=.82,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+function cube(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+const ground=mat(0x857765),stone=mat(0x9c7650),glass= new THREE.MeshStandardMaterial({color:0x8cb7c8,roughness:.25,metalness:.1,emissive:0x17303b,emissiveIntensity:.25});
+cube(scene,0,-.3,0,70,.6,50,ground);
+cube(scene,0,-.02,0,52,.12,13,mat(0x655f59));
+cube(scene,0,.03,0,52,.1,10,mat(0xb6a58d));
+for(const side of [-1,1]){
+ cube(scene,side*17,2,0,14,4.2,28,stone);
+ for(let z=-10;z<=10;z+=5){
+  cube(scene,side*17,1.55,z,2.7,2.6,.14,glass);
+  const arch=new THREE.Mesh(new THREE.TorusGeometry(1.25,.13,8,24,Math.PI),mat(0x64462f));arch.position.set(side*17,2.85,z);if(side>0)arch.rotation.y=Math.PI;scene.add(arch);
+ }
+ cube(scene,side*17,4.25,0,14,.3,28,mat(0x5b3e2b));
+}
+function sign(label,x,z,color){
+ const cn=document.createElement('canvas');cn.width=640;cn.height=140;const cx=cn.getContext('2d');
+ cx.fillStyle=color;cx.fillRect(0,0,640,140);cx.fillStyle='#fff0ce';cx.font='bold 46px Tahoma';cx.textAlign='center';cx.fillText(label,320,88);
+ const tex=new THREE.CanvasTexture(cn);tex.colorSpace=THREE.SRGBColorSpace;
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(11,2.4),new THREE.MeshBasicMaterial({map:tex}));mesh.position.set(x,5,z);scene.add(mesh);
+}
+sign('بازار بزرگ لارستان',-17,-14.2,'#423024');sign('بازار امام خمینی',17,14.2,'#423024');
+for(let i=-2;i<=2;i++){
+ cube(scene,i*5,1.35,-4,3.5,2.6,2.6,mat([0x8c493a,0x476b68,0x9a743e][(i+5)%3]));
+ cube(scene,i*5,2.75,-4,3.7,.18,2.8,mat(0x4b382c));
+}
+const fountain=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.7,.55,24),mat(0x8f9e9b));fountain.position.set(0,.2,10);scene.add(fountain);
+const water=new THREE.Mesh(new THREE.CylinderGeometry(2.15,2.15,.13,24),new THREE.MeshStandardMaterial({color:0x57a9c2,roughness:.2,metalness:.3,emissive:0x163d4a}));water.position.set(0,.55,10);scene.add(water);
+for(const x of [-22,-11,0,11,22]){const light=new THREE.PointLight(0xffbf74,2.3,18);light.position.set(x,4,0);scene.add(light)}
+function person(name,x,z,color){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const shirt=mat(color),skin=mat(0xe4b791),dark=mat(0x302b2a);
+ const body=new THREE.Mesh(new THREE.CapsuleGeometry(.36,.65,4,8),shirt);body.position.y=.92;body.castShadow=true;g.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.37,14,12),skin);head.position.y=1.75;g.add(head);
+ const hair=new THREE.Mesh(new THREE.SphereGeometry(.38,12,8,0,Math.PI*2,0,Math.PI*.45),dark);hair.position.y=2;g.add(hair);
+ for(const ex of [-.13,.13]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),dark);eye.position.set(ex,1.77,.32);g.add(eye)}
+ const smile=new THREE.Mesh(new THREE.TorusGeometry(.1,.018,6,12,Math.PI),dark);smile.position.set(0,1.6,.33);smile.rotation.z=Math.PI;g.add(smile);
+ return g;
+}
+const player=person('دایی سرهنگ',0,13,0x263e5b);
+const witness1=person('فروشنده بازار',-9,-1,0x94623e);
+const witness2=person('رهگذر',10,6,0x567b79);
+const witnesses=[
+ {name:'فروشنده بازار',group:witness1,desc:'فروشنده می‌گوید خودروی آبی از سمت میدان وارد خیابان بازار شد. او ساعت را دقیق به خاطر ندارد، اما می‌گوید هوا هنوز روشن بوده است.'},
+ {name:'رهگذر',group:witness2,desc:'رهگذر می‌گوید خودرو بعد از عبور از ورودی بازار به سمت بلوار اصلی رفت. او رنگ خودرو را آبی تیره توصیف می‌کند.'}
+];
+const heard=new Set();let started=false,nearest=null;
+function resize(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
+const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyE')interact()});addEventListener('keyup',e=>keys[e.code]=false);
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.onpointerdown=e=>{e.preventDefault();keys[k]=true};['pointerup','pointerleave','pointercancel'].forEach(v=>b.addEventListener(v,()=>keys[k]=false))});
+document.querySelector('#touchE').onclick=interact;
+document.querySelector('#start').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
+function interact(){
+ if(!nearest||!started)return;
+ if(heard.has(nearest.name)){document.querySelector('#objective').textContent='این گفت‌وگو قبلاً ثبت شده است.';return}
+ heard.add(nearest.name);
+ document.querySelector('#progress').textContent='گفت‌وگو: '+heard.size+' از ۲';
+ document.querySelector('#objective').textContent=nearest.name+': '+nearest.desc;
+ if(heard.size===2){document.querySelector('#summary').textContent='گفته‌های فروشنده و رهگذر ثبت شد. هر دو خودرو را در مسیر بازار تا بلوار دیده‌اند؛ حالا گزارش‌ها را کنار هم بگذار.';document.querySelector('#complete').style.display='grid'}
+}
+document.querySelector('#next').onclick=()=>location.href='evidence-room.html';
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
+ if(started){
+  let x=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);
+  let z=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+  const move=new THREE.Vector3(x,0,z);
+  if(move.lengthSq()>0){move.normalize();player.position.addScaledVector(move,6*dt);player.rotation.y=Math.atan2(move.x,move.z)}
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-23,23);player.position.z=THREE.MathUtils.clamp(player.position.z,-13,17);
+  nearest=null;let min=4.6;
+  for(const w of witnesses){const d=player.position.distanceTo(w.group.position);if(d<min){min=d;nearest=w}}
+  camera.position.lerp(new THREE.Vector3(player.position.x+7,10,player.position.z+13),.08);camera.lookAt(player.position.x,1,player.position.z);
+  for(const [i,w] of witnesses.entries()){w.group.position.y=Math.abs(Math.sin(clock.elapsedTime*3+i))*.04}
+ }
+ renderer.render(scene,camera);
+}
+animate();
+</script></body></html>
