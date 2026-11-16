@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دایی سرهنگ | مرحله ۴ - اتاق مدارک</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f6efe2;font-family:Tahoma,Arial}
+header{padding:14px 20px;background:#091523;color:#e8bd68;font-size:20px;font-weight:bold;display:flex;justify-content:space-between;gap:10px;align-items:center}
+header a{color:#f5d99f;text-decoration:none;font-size:13px}
+main{max-width:1250px;margin:16px auto;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px}
+#stage{position:relative;overflow:hidden;border:1px solid #53677e;border-radius:15px}
+canvas{display:block;width:100%;height:66vh;min-height:370px;touch-action:none}
+.hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
+.pill{background:#091626e8;border:1px solid #52677b;border-radius:20px;padding:9px 12px;font-size:12px}
+aside{background:#1a2d45;border:1px solid #40546d;border-radius:14px;padding:16px}
+aside h2{font-size:18px;color:#e8bd68}aside p{font-size:13px;line-height:2;color:#dce5ee}
+.task{padding:11px;background:#102035;border-radius:10px;font-size:13px;line-height:2;margin:12px 0}.gold{color:#e8bd68}
+.overlay{position:absolute;inset:0;background:#07111de8;display:grid;place-items:center;padding:16px;z-index:4}
+.dialog{max-width:470px;background:#182b46;border:1px solid #71849b;border-radius:16px;padding:22px;text-align:center;line-height:2;box-shadow:0 18px 70px #0008}
+.dialog h1{margin:0;color:#e8bd68}.dialog p{font-size:14px;color:#dce5ee}
+button{border:0;border-radius:9px;background:#e8bd68;color:#172235;font-weight:bold;padding:12px 20px;cursor:pointer}
+.mobile{display:none;text-align:center;padding:8px}.mobile button{margin:3px;min-width:48px;touch-action:none}
+@media(max-width:850px){main{grid-template-columns:1fr}.mobile{display:block}canvas{height:55vh;min-height:320px}}
+</style></head>
+<body>
+<header><span>🗂️ دایی سرهنگ | مرحله ۴: اتاق مدارک</span><a href="market-witness.html">بازگشت به بازار ←</a></header>
+<main><section>
+<div id="stage"><canvas id="game"></canvas>
+<div class="hud"><div class="pill" id="objective">مرحله ۴ از ۵ · بررسی مدارک</div><div class="pill" id="progress">مدرک‌ها: ۰ از ۳</div></div>
+<div class="overlay" id="intro"><div class="dialog"><h1>اتاق بررسی مدارک</h1><p>گزارش همکاران و گفته‌های شاهدها به این اتاق رسیده است. سه مدرک را پیدا کن و با E بررسی‌شان کن.</p><p>حرکت: WASD یا کلیدهای جهت‌دار<br>بررسی: نزدیک مدرک شو و E را بزن</p><button id="start">شروع بررسی</button></div></div>
+<div class="overlay" id="complete" style="display:none"><div class="dialog"><h1>مدارک تکمیل شد!</h1><p>سه مدرک با گفته‌های شاهدها مقایسه شد. حالا وقت جمع‌بندی پرونده است.</p><button id="next">رفتن به مرحله پنجم</button></div></div>
+</div>
+<div class="mobile"><button data-key="ArrowLeft">◀</button><button data-key="ArrowUp">▲</button><button data-key="ArrowDown">▼</button><button data-key="ArrowRight">▶</button><button id="touchE">E بررسی</button></div>
+</section>
+<aside><h2>سه مدرک مهم</h2>
+<div class="task"><b class="gold">۱. گزارش زمان</b><br>زمان ثبت‌شده باید با گفتهٔ شاهدها مقایسه شود.</div>
+<div class="task"><b class="gold">۲. تصویر دوربین</b><br>جهت حرکت خودرو را نشان می‌دهد؛ جزئیات تصویر را بررسی کن.</div>
+<div class="task"><b class="gold">۳. یادداشت بازار</b><br>یادداشت فروشنده می‌تواند مسیر خودرو را روشن‌تر کند.</div>
+<p style="font-size:11px;color:#afc0d0">برای جمع‌کردن هر مدرک، کنار آن بایست و E را فشار بده. با هر مدرک، تعداد بالای صفحه تغییر می‌کند.</p>
+</aside></main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const canvas=document.querySelector('#game'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x6b7b88);scene.fog=new THREE.Fog(0x6b7b88,24,60);
+const camera=new THREE.PerspectiveCamera(60,1,.1,100);
+scene.add(new THREE.HemisphereLight(0xf4e5cd,0x354255,1.9));
+const lamp=new THREE.DirectionalLight(0xffe3b8,2);lamp.position.set(-6,11,8);lamp.castShadow=true;scene.add(lamp);
+const mat=(c,r=.84,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+function box(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+box(scene,0,-.18,0,20,.35,16,mat(0x77736a));
+for(const x of [-9.8,9.8])box(scene,x,2.3,0,.35,4.6,16,mat(0xc9bda9));
+box(scene,0,2.3,-7.8,20,4.6,.35,mat(0xc9bda9));
+box(scene,0,2.3,7.8,20,4.6,.35,mat(0xc9bda9));
+box(scene,0,4.7,0,19.5,.18,15.5,mat(0xbab3a6));
+for(let x of [-5,0,5]){box(scene,x,4.58,0,1.6,.08,.6,mat(0xffedc7));const l=new THREE.PointLight(0xffe4b8,5,12);l.position.set(x,4,0);scene.add(l)}
+// Long evidence table and labelled document stands.
+box(scene,0,.72,-.2,7.4,1.05,2.8,mat(0x62462f));
+box(scene,0,1.3,-.2,7.6,.13,2.95,mat(0x815c3b));
+function labelTexture(text){
+ const c=document.createElement('canvas');c.width=512;c.height=150;const x=c.getContext('2d');
+ x.fillStyle='#e8dfc8';x.fillRect(0,0,512,150);x.fillStyle='#21344a';x.font='bold 42px Tahoma';x.textAlign='center';x.fillText(text,256,92);
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;
+}
+const player=new THREE.Group();scene.add(player);player.position.set(0,0,5.4);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.34,.72,4,8),mat(0x263e5b));body.position.y=.92;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.27,14,10),mat(0xe3b894));head.position.y=1.72;player.add(head);
+body.visible=false;head.visible=false;
+const evidence=[
+ {name:'گزارش زمان',x:-6,z:-3,desc:'زمان ثبت‌شده با گفتهٔ شاهد اول کمی تفاوت دارد. این اختلاف به‌تنهایی چیزی را ثابت نمی‌کند؛ باید با مدرک دوم سنجیده شود.'},
+ {name:'تصویر دوربین',x:0,z:-3,desc:'تصویر دوربین نشان می‌دهد خودروی آبی از خیابان بازار به بلوار اصلی رفته است؛ همان مسیری که رهگذر توصیف کرد.'},
+ {name:'یادداشت بازار',x:6,z:-3,desc:'یادداشت فروشنده زمان را تقریبی نوشته است. این موضوع توضیح می‌دهد چرا ساعت گفته‌شده با گزارش دوربین دقیقاً برابر نیست.'}
+];
+const objects=[];
+for(const item of evidence){
+ const stand=new THREE.Group();stand.position.set(item.x,0,item.z);scene.add(stand);
+ box(stand,0,.75,0,1.8,1.5,1.1,mat(0x43566b));
+ const paper=box(stand,0,1.58,0,1.35,.09,.88,mat(0xe4dac0));
+ const frame=new THREE.Mesh(new THREE.PlaneGeometry(1.22,.62),new THREE.MeshBasicMaterial({map:labelTexture(item.name)}));
+ frame.position.set(0,1.65,.04);stand.add(frame);
+ const light=new THREE.PointLight(0xffd28a,2,7);light.position.set(0,2.3,1);stand.add(light);
+ objects.push({...item,group:stand});
+}
+const raySign=new THREE.Mesh(new THREE.BoxGeometry(1,1,.1),mat(0x334b64));raySign.position.set(0,2.4,-7.45);scene.add(raySign);
+const poster=new THREE.Mesh(new THREE.PlaneGeometry(4,2.2),new THREE.MeshBasicMaterial({map:labelTexture('پرونده خودروی آبی')}));poster.position.set(0,2.55,-7.25);scene.add(poster);
+const found=new Set();let started=false,nearest=null;
+function resize(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
+const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='KeyE')interact()});addEventListener('keyup',e=>keys[e.code]=false);
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.onpointerdown=e=>{e.preventDefault();keys[k]=true};['pointerup','pointerleave','pointercancel'].forEach(v=>b.addEventListener(v,()=>keys[k]=false))});
+document.querySelector('#touchE').onclick=interact;
+document.querySelector('#start').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
+function interact(){
+ if(!started||!nearest)return;
+ if(found.has(nearest.name)){document.querySelector('#objective').textContent='این مدرک قبلاً بررسی شده است.';return}
+ found.add(nearest.name);
+ document.querySelector('#progress').textContent='مدرک‌ها: '+found.size+' از ۳';
+ document.querySelector('#objective').textContent=nearest.name+': '+nearest.desc;
+ if(found.size===3)document.querySelector('#complete').style.display='grid';
+}
+document.querySelector('#next').onclick=()=>location.href='case-final.html';
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
+ if(started){
+  const x=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);
+  const z=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+  const move=new THREE.Vector3(x,0,z);
+  if(move.lengthSq()>0){move.normalize();player.position.addScaledVector(move,5.5*dt);player.rotation.y=Math.atan2(move.x,move.z)}
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-8.2,8.2);player.position.z=THREE.MathUtils.clamp(player.position.z,-6.3,6.3);
+  nearest=null;let min=4;
+  for(const item of objects){const d=player.position.distanceTo(item.group.position);if(d<min){min=d;nearest=item}}
+ }
+ camera.position.lerp(new THREE.Vector3(player.position.x+7,10,player.position.z+12),.1);camera.lookAt(player.position.x,1,player.position.z);
+ renderer.render(scene,camera);
+}
+animate();
+</script></body></html>
