@@ -106,6 +106,8 @@ box(room,'نشان پلیس',0,3.83,6.72,.55,.42,.08,mats.gold);
 const player=new THREE.Group();scene.add(player);player.position.set(0,0,4.7);
 const body=new THREE.Mesh(new THREE.CapsuleGeometry(.36,.7,4,8),mat(0x243b55));body.position.y=.92;player.add(body);
 const head=new THREE.Mesh(new THREE.SphereGeometry(.25,14,10),mat(0xe2bc98));head.position.y=1.68;player.add(head);
+// Hide the avatar mesh so the first-person camera is not inside the character's head.
+body.visible=false;head.visible=false;
 // objects visible to raycaster
 const interactives=[];room.traverse(o=>{if(o.isMesh&&o.userData.interactive)interactives.push(o)});
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let yaw=0,pitch=-.18,started=false,nearest=null;
