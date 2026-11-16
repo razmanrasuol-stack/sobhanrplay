@@ -179,8 +179,9 @@ function inspect(hit){
   document.querySelector('#result').textContent='گفت‌وگوی شاهد ثبت شد. گفته او با بخشی از گزارش‌ها تفاوت دارد؛ حالا پوشه قدیمی را بررسی کن تا تناقض‌ها روشن‌تر شوند.';
  }else if(currentStage===4&&n.includes('پوشه')){
   currentStage=5;
-  document.querySelector('#objective').textContent='مرحله ۵ از ۵ · پرونده سایه آماده بررسی است';
-  document.querySelector('#result').textContent='مرحله‌های اداره پلیس کامل شد! تیم حالا اطلاعات اولیه لازم را برای ادامه پرونده سایه در اختیار دارد.';
+  document.querySelector('#objective').textContent='مرحله ۲ کامل شد · مرحله ۳: بازار لارستان';
+  document.querySelector('#result').textContent='گزارش‌ها و پوشه بررسی شدند. حالا به بازار لارستان برو تا با دو شاهد صحبت کنی.';
+  setTimeout(()=>{location.href='market-witness.html'},1800);
  }
 }
 
