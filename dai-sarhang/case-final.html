@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دایی سرهنگ | مرحله ۵ - تصمیم نهایی</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101827;color:#f6efe2;font-family:Tahoma,Arial}
+header{padding:14px 20px;background:#091523;color:#e8bd68;font-size:20px;font-weight:bold;display:flex;justify-content:space-between;gap:10px;align-items:center}
+header a{color:#f5d99f;text-decoration:none;font-size:13px}
+main{max-width:1220px;margin:16px auto;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px}
+#stage{position:relative;overflow:hidden;border:1px solid #53677e;border-radius:15px}
+canvas{display:block;width:100%;height:66vh;min-height:370px}
+aside{background:#1a2d45;border:1px solid #40546d;border-radius:14px;padding:17px}
+aside h2{font-size:18px;color:#e8bd68}aside p{font-size:13px;line-height:2;color:#dce5ee}
+.task{padding:11px;background:#102035;border-radius:10px;font-size:13px;line-height:2;margin:12px 0}
+.overlay{position:absolute;inset:0;background:#07111de8;display:grid;place-items:center;padding:16px;z-index:4}
+.dialog{max-width:520px;width:100%;background:#182b46;border:1px solid #71849b;border-radius:16px;padding:22px;text-align:center;line-height:2;box-shadow:0 18px 70px #0008}
+.dialog h1{margin:0;color:#e8bd68}.dialog p{font-size:14px;color:#dce5ee}
+button{border:0;border-radius:9px;background:#e8bd68;color:#172235;font-weight:bold;padding:12px 16px;cursor:pointer}
+.choices{display:grid;gap:9px;margin-top:14px}.choices button{width:100%;text-align:right;background:#263f5c;color:#f7f0df;border:1px solid #60768c}.choices button:hover{background:#345474}
+.small{font-size:11px;color:#aebed0}
+@media(max-width:850px){main{grid-template-columns:1fr}canvas{height:55vh;min-height:320px}}
+</style></head>
+<body>
+<header><span>⚖️ دایی سرهنگ | مرحله ۵: تصمیم نهایی</span><a href="evidence-room.html">بازگشت به اتاق مدارک ←</a></header>
+<main><section id="stage">
+<canvas id="game"></canvas>
+<div class="overlay" id="intro"><div class="dialog"><h1>جلسه جمع‌بندی پرونده</h1><p>گفته‌های دو شاهد و سه مدرک بررسی شده‌اند. حالا باید تصمیم بگیری گزارش را چطور به مسئول پرونده تحویل بدهی.</p><p class="small">این پایان بخش اول داستان دایی سرهنگ است. انتخاب تو نتیجهٔ گزارش را تغییر می‌دهد.</p><button id="start">شروع جلسه</button></div></div>
+<div class="overlay" id="choice" style="display:none"><div class="dialog"><h1>چه تصمیمی می‌گیری؟</h1><p>اطلاعات موجود را مرور کردی. یکی از راه‌های زیر را انتخاب کن:</p>
+<div class="choices">
+<button data-choice="report">۱. تحویل گزارش کامل به فرمانده پرونده</button>
+<button data-choice="review">۲. درخواست بررسی دوبارهٔ اختلاف زمان‌ها</button>
+<button data-choice="witness">۳. درخواست گفت‌وگوی تکمیلی با شاهدها</button>
+</div></div></div>
+<div class="overlay" id="ending" style="display:none"><div class="dialog"><h1 id="endingTitle">پرونده ثبت شد</h1><p id="endingText"></p><p class="small">پایان بخش اول بازی دایی سرهنگ</p><button id="restart">شروع دوباره از مرحله اول</button></div></div>
+</section>
+<aside><h2>خلاصه پرونده</h2>
+<div class="task"><b style="color:#e8bd68">گزارش شاهدها</b><br>فروشنده بازار و رهگذر مسیر خودروی آبی را توضیح داده‌اند.</div>
+<div class="task"><b style="color:#e8bd68">مدارک بررسی‌شده</b><br>گزارش زمان، تصویر دوربین و یادداشت بازار با هم مقایسه شده‌اند.</div>
+<p>دایی سرهنگ باید نشان بدهد که این بار می‌خواهد کار را درست و قانونی انجام بدهد. تصمیم نهایی باید بر پایهٔ مدارک باشد، نه حدس و عجله.</p>
+</aside></main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const canvas=document.querySelector('#game'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.13;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x18283a);scene.fog=new THREE.Fog(0x18283a,24,70);
+const camera=new THREE.PerspectiveCamera(57,1,.1,100);
+scene.add(new THREE.HemisphereLight(0xc9d7e8,0x47382d,2));
+const sun=new THREE.DirectionalLight(0xffd8a5,2.1);sun.position.set(-7,12,8);sun.castShadow=true;scene.add(sun);
+const mat=(c,r=.82,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+function box(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+box(scene,0,-.2,0,24,.4,18,mat(0x756f68));
+for(const x of [-12,12])box(scene,x,2.6,0,.3,5.2,18,mat(0xc7bca9));
+box(scene,0,2.6,-9,24,5.2,.3,mat(0xc7bca9));
+box(scene,0,2.6,9,24,5.2,.3,mat(0xc7bca9));
+box(scene,0,5.25,0,23.5,.18,17.5,mat(0xb3aa9a));
+for(const x of [-6,0,6]){box(scene,x,5.1,0,1.6,.08,.65,mat(0xffedc7));const light=new THREE.PointLight(0xffe1b5,5,14);light.position.set(x,4.4,0);scene.add(light)}
+// Conference table and report folders.
+box(scene,0,.78,-1,9.2,1.1,3.4,mat(0x553c2b));
+box(scene,0,1.38,-1,9.4,.14,3.55,mat(0x876044));
+for(const x of [-3,0,3]){
+ const folder=box(scene,x,1.53,-1,.95,.12,1.45,mat(x===0?0x8a4b3e:0x34516a));
+ folder.rotation.y=(x*.08);
+}
+const plaque=box(scene,0,3.7,-8.78,5.8,1.1,.18,mat(0x29455e));
+const signCanvas=document.createElement('canvas');signCanvas.width=600;signCanvas.height=140;const ctx=signCanvas.getContext('2d');
+ctx.fillStyle='#29455e';ctx.fillRect(0,0,600,140);ctx.fillStyle='#f1d59d';ctx.font='bold 48px Tahoma';ctx.textAlign='center';ctx.fillText('جلسه بررسی پرونده',300,88);
+const signTex=new THREE.CanvasTexture(signCanvas);signTex.colorSpace=THREE.SRGBColorSpace;
+const sign=new THREE.Mesh(new THREE.PlaneGeometry(5.5,1.2),new THREE.MeshBasicMaterial({map:signTex}));sign.position.set(0,3.7,-8.65);scene.add(sign);
+function colleague(x,z,color){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.38,.75,4,8),mat(color));torso.position.y=1;g.add(torso);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.38,14,12),mat(0xe2b791));head.position.y=1.92;g.add(head);
+ const hair=new THREE.Mesh(new THREE.SphereGeometry(.39,12,8,0,Math.PI*2,0,Math.PI*.45),mat(0x342a25));hair.position.y=2.15;g.add(hair);
+ for(const ex of [-.13,.13]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),mat(0x20252b));eye.position.set(ex,1.94,.32);g.add(eye)}
+ const smile=new THREE.Mesh(new THREE.TorusGeometry(.1,.018,6,12,Math.PI),mat(0x633c32));smile.position.set(0,1.78,.32);smile.rotation.z=Math.PI;g.add(smile);
+ return g;
+}
+colleague(-6,-4,0x304c68);colleague(0,-4,0x3a5b70);colleague(6,-4,0x6b5543);
+const clock=new THREE.Clock();
+function resize(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
+function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();camera.position.set(Math.sin(t*.08)*18,10,23);camera.lookAt(0,1,-1);renderer.render(scene,camera)}animate();
+document.querySelector('#start').onclick=()=>{document.querySelector('#intro').style.display='none';document.querySelector('#choice').style.display='grid'};
+const endings={
+ report:{title:'گزارش به فرمانده تحویل شد',text:'گزارش کامل همراه با هر سه مدرک ثبت شد. فرمانده پرونده را برای بررسی رسمی ارجاع می‌دهد. دایی سرهنگ تصمیم گرفت این بار همه چیز را مستند و قانونی پیش ببرد.'},
+ review:{title:'بررسی دوباره درخواست شد',text:'اختلاف زمان‌ها برای بررسی بیشتر به کارشناس سپرده شد. پرونده باز می‌ماند تا اطلاعات دقیق‌تری جمع‌آوری شود. عجله نکردن، تصمیم درستی بود.'},
+ witness:{title:'گفت‌وگوی تکمیلی ثبت شد',text:'درخواست گفت‌وگوی دوباره با شاهدها ثبت شد. تیم پلیس پیش از نتیجه‌گیری، گفته‌ها را دقیق‌تر بررسی خواهد کرد.'}
+};
+document.querySelectorAll('[data-choice]').forEach(button=>{
+ button.onclick=()=>{
+  const result=endings[button.dataset.choice];
+  document.querySelector('#endingTitle').textContent=result.title;
+  document.querySelector('#endingText').textContent=result.text;
+  document.querySelector('#choice').style.display='none';
+  document.querySelector('#ending').style.display='grid';
+ };
+});
+document.querySelector('#restart').onclick=()=>location.href='index.html';
+</script></body></html>
