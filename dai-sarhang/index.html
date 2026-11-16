@@ -116,7 +116,7 @@ for(const p of [[-240,-16],[-208,16],[-176,-16],[-144,16],[-120,-16],[-88,16],[-
 for(let x=-260;x<=260;x+=18){
  box(scene,x,2.6,-8.1,.16,5.2,.16,mat(0x343b40));
  box(scene,x,5.15,-7.8,.65,.14,.5,mat(0xffdf9b));
- const lamp=new THREE.PointLight(0xffdca1,1.5,13);lamp.position.set(x,4.9,-7.8);scene.add(lamp);
+ const lamp=new THREE.PointLight(0xffdca1,2.6,16);lamp.position.set(x,4.9,-7.8);scene.add(lamp);
 }
 // Familiar Lar shopping destinations, recreated as stylised game landmarks.
 building(-18,-31,34,15,9,1);shopSign('بازار امام خمینی',-18,-23.4,25,0x31526c);
@@ -133,8 +133,8 @@ shopSign('مجتمع تجاری نیلی',122,24.4,21,0x334b70);
 // More neighbourhoods and connected cross streets throughout the expanded city.
 for(const x of [-225,-185,-145,-105,-65,-25,15,55,95,135,175,215,255]){
  if(Math.abs(x+58)<20)continue;
- box(scene,x,.02,0,8,.13,72,road);
- for(let z=-31;z<=31;z+=8)box(scene,x,.11,z,.14,.025,2.6,white);
+ box(scene,x,.02,0,8,.13,42,road);
+ for(let z=-18;z<=18;z+=8)box(scene,x,.11,z,.14,.025,2.6,white);
 }
 [[-244,-36,16,15,8],[-208,36,18,16,9],[-172,-36,17,16,7],[-136,38,19,16,8],[-98,-38,18,16,9],[-58,58,18,16,8],[-18,-58,18,16,8],[18,58,18,16,8],[58,-58,18,16,9],[98,58,18,16,8],[138,-58,18,16,8],[178,58,18,16,9],[218,-58,18,16,8],[252,58,18,16,8],[246,-34,17,15,7]].forEach((p,i)=>building(...p,i+1));
 // Imam Khomeini roundabout and its planted centre.
