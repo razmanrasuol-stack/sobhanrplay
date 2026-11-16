@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دایی سرهنگ | اداره پلیس لارستان</title>
+<style>
+:root{--navy:#101b2b;--panel:#182a40;--gold:#e3b864;--cream:#f3eadb;--muted:#b8c5d3}
+*{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--cream);font-family:Tahoma,Arial,sans-serif}
+header{height:62px;padding:13px 20px;background:#0a1422;border-bottom:1px solid #3b5067;display:flex;align-items:center;justify-content:space-between}
+header strong{font-size:20px;color:var(--gold)}header a{color:#f1d59b;text-decoration:none;font-size:13px}
+main{max-width:1450px;margin:14px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:14px}
+#viewport{position:relative;min-height:620px;height:calc(100vh - 95px);max-height:900px;border:1px solid #495c70;border-radius:14px;overflow:hidden;background:#8798a4}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;top:12px;right:12px;left:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
+.chip{background:#0b1728e8;border:1px solid #52667d;border-radius:30px;padding:9px 13px;font-size:12px}
+.hint{position:absolute;bottom:12px;right:12px;background:#0b1728e8;border-radius:9px;padding:10px 13px;color:#e8d5ae;font-size:12px}
+aside{background:var(--panel);border:1px solid #40536a;border-radius:14px;padding:17px}
+h2{font-size:18px;color:var(--gold);margin:4px 0 12px}aside p{font-size:13px;line-height:2;color:#d6dfeb}
+.task{padding:12px;border-radius:10px;background:#102035;margin:12px 0;font-size:13px;line-height:2}
+button{background:var(--gold);color:#172235;border:0;border-radius:8px;padding:10px 13px;font-weight:bold;cursor:pointer}
+#result{min-height:48px;padding:10px;border:1px solid #52667d;border-radius:9px;color:#dbe6ef;font-size:12px;line-height:1.9}
+.overlay{position:absolute;inset:0;background:#07111dcc;display:grid;place-items:center;padding:18px;z-index:5}
+.dialog{max-width:480px;background:#182a40;border:1px solid #71849b;border-radius:15px;padding:23px;text-align:center;line-height:2;box-shadow:0 20px 70px #0008}
+.dialog h1{color:var(--gold);margin:0 0 8px}.dialog p{font-size:14px;color:#dce5ee}
+@media(max-width:900px){main{grid-template-columns:1fr}#viewport{height:65vh;min-height:420px}aside{order:2}}
+</style>
+</head>
+<body>
+<header><strong>🚔 دایی سرهنگ | اداره پلیس لارستان</strong><a href="index.html">بازگشت به خیابان شهر ←</a></header>
+<main>
+<section id="viewport">
+<canvas id="scene"></canvas>
+<div class="hud"><div class="chip" id="objective">پرونده: بررسی سرنخ‌های اولیه</div><div class="chip">محیط سه‌بعدی آزمایشی</div></div>
+<div class="hint">حرکت: WASD یا فلش‌ها · چرخش دید: کشیدن ماوس · بررسی: کلیک روی اشیا یا E</div>
+<div class="overlay" id="intro"><div class="dialog"><h1>اداره پلیس لارستان</h1><p>به مرکز تحقیقات خوش آمدی. در این اتاق می‌توانی تابلوی پرونده، گزارش نگهبانی و پوشهٔ قدیمی دایی سرهنگ را بررسی کنی.</p><p>این بخش یک نمونهٔ اولیهٔ قابل‌بازی است؛ برای حرکت از WASD و برای بررسی اشیا از کلیک یا کلید E استفاده کن.</p><button id="begin">ورود به اداره</button></div></div>
+</section>
+<aside>
+<h2>اتاق تحقیقات</h2>
+<p>پس از ترخیص از بیمارستان، دایی سرهنگ برای همکاری به اداره پلیس آمده است. افسر مسئول از او می‌خواهد سرنخ‌ها را مرور کند و دربارهٔ پروندهٔ سایه با دقت تصمیم بگیرد.</p>
+<div class="task"><b style="color:var(--gold)">هدف این بخش</b><br>سه مورد را بررسی کن: تابلوی پرونده، گزارش نگهبانی و پوشهٔ قدیمی.</div>
+<h2>یادداشت‌های پرونده</h2><div id="result">هنوز سرنخی بررسی نشده است.</div>
+<p style="font-size:11px;color:#aebdcb">برای حرکت در اتاق به اینترنت جهت بارگذاری موتور سه‌بعدی نیاز است. این بخش به‌تنهایی ذخیرهٔ آنلاین یا چندنفره ندارد.</p>
+</aside>
+</main>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const canvas=document.querySelector('#scene'),host=document.querySelector('#viewport');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x8799a5);scene.fog=new THREE.Fog(0x8799a5,22,48);
+const camera=new THREE.PerspectiveCamera(62,1,.1,90);
+scene.add(new THREE.HemisphereLight(0xf5e7ce,0x354252,2.0));
+const keyLight=new THREE.DirectionalLight(0xffe4b5,2.25);keyLight.position.set(-6,11,7);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);scene.add(keyLight);
+const fill=new THREE.PointLight(0xc5d8ee,22,17);fill.position.set(5,4,-2);scene.add(fill);
+const mat=(c,r=.82,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const mats={wall:mat(0xd5c9b4),floor:mat(0x777d80),trim:mat(0x4a3d31),wood:mat(0x61472f),dark:mat(0x172536),blue:mat(0x244967),glass: new THREE.MeshStandardMaterial({color:0x83b2c7,roughness:.25,metalness:.1}),paper:mat(0xe7ddc8),gold:mat(0xc89d55,.5,.25),green:mat(0x315346),red:mat(0x7e3434)};
+function box(parent,name,x,y,z,w,h,d,material,interactive=false){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.name=name;o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);if(interactive)o.userData.interactive=true;return o}
+const room=new THREE.Group();scene.add(room);
+// floor and four wall sections, with a clear doorway in the back wall
+box(room,'کف اتاق',0,-.16,0,18,.32,14,mat(0x777c80));
+box(room,'دیوار چپ',-9,2.2,0,.25,4.6,14,mats.wall);
+box(room,'دیوار راست',9,2.2,0,.25,4.6,14,mats.wall);
+box(room,'دیوار عقب چپ',-4.5,2.2,-7,9,4.6,.25,mats.wall);
+box(room,'دیوار عقب راست',5.9,2.2,-7,6.2,4.6,.25,mats.wall);
+box(room,'بالای در',1.4,4,-7,2.8,1,.25,mats.wall);
+box(room,'دیوار روبرو چپ',-5.8,2.2,7,6.4,4.6,.25,mats.wall);
+box(room,'دیوار روبرو راست',5.8,2.2,7,6.4,4.6,.25,mats.wall);
+box(room,'بالای ورودی',0,4,-7,2.8,1,.25,mats.wall);
+box(room,'قرنیز چپ',-8.83,.18,0,.1,.25,13.8,mats.trim);box(room,'قرنیز راست',8.83,.18,0,.1,.25,13.8,mats.trim);
+box(room,'قرنیز عقب',0,.18,-6.82,17.7,.25,.1,mats.trim);
+// window frames on the right
+box(room,'قاب پنجره',8.82,2.8,-2.3,.12,2.1,3.3,mats.trim);
+box(room,'پنجره',8.74,2.8,-2.3,.08,1.85,3.05,mats.glass);
+box(room,'میله پنجره عمودی',8.66,2.8,-2.3,.08,1.9,.08,mats.trim);
+box(room,'میله پنجره افقی',8.66,2.8,-2.3,.08,.08,3.1,mats.trim);
+// ceiling panels
+box(room,'پنل سقف',0,4.55,0,17.8,.16,13.8,mat(0xc5bdad));
+// ceiling lights
+for(const x of [-4,0,4]){box(room,'چراغ سقفی',x,4.42,0,1.5,.08,.55,mat(0xffedc4,0.25));const l=new THREE.PointLight(0xffe4b8,7,10);l.position.set(x,4.2,0);scene.add(l)}
+// reception desk, monitor and chair
+box(room,'میز افسر',-3,.75,2.1,4.3,1.15,1.65,mats.wood);
+box(room,'صفحه میز',-3,1.38,2.1,4.45,.12,1.8,mat(0x8a6748));
+box(room,'مانیتور',-3,2.1,1.55,1.45,1.1,.16,mats.dark);
+box(room,'صفحه روشن مانیتور',-3,2.12,1.44,1.25,.82,.025,mat(0x39778a,.3));
+box(room,'کیبورد',-3,1.48,2.65,1.15,.08,.38,mat(0x202a35));
+const chair= new THREE.Group();chair.position.set(-3,.2,3.5);room.add(chair);
+box(chair,'صندلی',0,.65,0,1,.18,1,mat(0x263342));box(chair,'پشتی صندلی',0,1.25,-.42,1,.95,.18,mat(0x263342));
+// evidence board with pinned clue cards
+box(room,'تابلوی پرونده',0,2.65,-6.78,5.4,2.5,.18,mats.trim,true);
+box(room,'سطح تابلو',0,2.65,-6.66,5.15,2.25,.04,mat(0x9e927c),true);
+const clueData=[
+ {x:-1.65,y:3.05,c:0xc9bba0,t:'تابلوی پرونده',desc:'روی تخته، سه سرنخ ثبت شده است: زمان تقریبی حضور سایه، نام یک شاهد و یک یادداشت ناقص. هنوز هیچ‌کدام به‌تنهایی نتیجه قطعی نمی‌دهند.'},
+ {x:0,y:2.45,c:0xb5c8c8,t:'گزارش نگهبانی',desc:'گزارش نگهبانی نشان می‌دهد زمان ورود یک مراجعه‌کننده با گفتهٔ شاهد اول هماهنگ نیست. لازم است پیش از نتیجه‌گیری، گفته‌ها دوباره بررسی شوند.'},
+ {x:1.65,y:3.05,c:0xcdb4a0,t:'یادداشت زمان',desc:'یادداشت کوتاه کنار تابلو فقط یک ساعت تقریبی را نشان می‌دهد؛ این زمان قطعی نیست و باید با گزارش‌های دیگر مقایسه شود.'}
+];
+for(const c of clueData){box(room,c.t,c.x,c.y,-6.6,1.05,.85,.08,mat(c.c),true);box(room,'پونز پرونده',c.x+.38,c.y+.26,-6.54,.11,.11,.05,mats.red)}
+// filing cabinet and folders
+box(room,'کمد پرونده‌ها',6.6,1.35,-3.8,2.7,2.7,1.25,mats.blue);
+for(let y=.65;y<2.7;y+=.75){box(room,'کشوی کمد',6.6,y,-3.13,2.35,.5,.07,mat(0x637184));box(room,'دستگیره کشو',6.6,y,-3.03,.45,.07,.07,mats.gold)}
+const folder=box(room,'پوشه قدیمی دایی سرهنگ',5.5,1.58,2.1,.85,.12,.62,mat(0x9a713e),true);folder.rotation.y=-.3;
+box(room,'میز بایگانی',6.5,.55,2.1,2.7,.9,1.6,mats.wood);
+box(room,'چراغ مطالعه',6,1.08,1.7,.35,.85,.35,mats.gold);
+// wall sign
+box(room,'تابلوی اداره',0,3.85,6.82,3.5,.65,.14,mats.blue);
+box(room,'نشان پلیس',0,3.83,6.72,.55,.42,.08,mats.gold);
+// player
+const player=new THREE.Group();scene.add(player);player.position.set(0,0,4.7);
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.36,.7,4,8),mat(0x243b55));body.position.y=.92;player.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.25,14,10),mat(0xe2bc98));head.position.y=1.68;player.add(head);
+// objects visible to raycaster
+const interactives=[];room.traverse(o=>{if(o.isMesh&&o.userData.interactive)interactives.push(o)});
+const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let yaw=0,pitch=-.18,started=false,nearest=null;
+function resize(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(host);resize();
+function describe(hit){const n=hit.object.name;let d='این وسیله بخشی از اداره پلیس است.';if(n.includes('تابلو'))d='تابلوی پرونده چند یادداشت و شاهد متناقض را کنار هم قرار می‌دهد. روی هر کارت کلیک کن تا اطلاعات همان سرنخ را بخوانی.';else if(n.includes('گزارش'))d=clueData[1].desc;else if(n.includes('زمان'))d=clueData[2].desc;else if(n.includes('پوشه'))d='پوشهٔ قدیمی شامل یادداشت‌هایی دربارهٔ گذشتهٔ دایی سرهنگ است. بعضی اطلاعات آن هنوز نیاز به تأیید دارند.';return d}
+function inspect(hit){if(!hit)return;const n=hit.object.name;let d=describe(hit);const clue=clueData.find(c=>n===c.t);if(clue)d=clue.desc;document.querySelector('#result').textContent=d;document.querySelector('#objective').textContent='سرنخ بررسی شد: '+n}
+canvas.addEventListener('pointerdown',e=>{if(!started)return;const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(interactives,false);if(hits.length)inspect(hits[0])});
+const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'&&nearest)inspect({object:nearest})});addEventListener('keyup',e=>keys[e.code]=false);
+let dragging=false,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});addEventListener('pointerup',()=>dragging=false);addEventListener('pointermove',e=>{if(!dragging||!started)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.55,.35);lastX=e.clientX;lastY=e.clientY});
+document.querySelector('#begin').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
+const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.045);if(started){let f=(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0),s=(keys.KeyA||keys.ArrowLeft?-1:0)+(keys.KeyD||keys.ArrowRight?1:0);let forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));const move=forward.multiplyScalar(f).add(right.multiplyScalar(s));if(move.lengthSq()>0){move.normalize();player.position.addScaledVector(move,3.8*dt);player.rotation.y=Math.atan2(move.x,move.z)}player.position.x=THREE.MathUtils.clamp(player.position.x,-8,8);player.position.z=THREE.MathUtils.clamp(player.position.z,-6.2,6.1);let min=99;nearest=null;for(const o of interactives){const dist=o.getWorldPosition(new THREE.Vector3()).distanceTo(player.position);if(dist<min){min=dist;nearest=o}}if(min>5)nearest=null;}
+const target=new THREE.Vector3(player.position.x,1.5,player.position.z);const offset=new THREE.Vector3(Math.sin(yaw)*7,2.5+pitch*3,Math.cos(yaw)*7);camera.position.copy(target).add(offset);camera.lookAt(target);renderer.render(scene,camera)}animate();
+</script></body></html>
