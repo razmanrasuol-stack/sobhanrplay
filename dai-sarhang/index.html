@@ -2,32 +2,191 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>دایی سرهنگ | بازی سه‌بعدی</title>
+<title>دایی سرهنگ | تعقیب در لارستان</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#101827;color:#f7f2e8;font-family:Tahoma,Arial}header{padding:15px 20px;background:#0b1422;color:#e9bd65;font-size:22px;font-weight:bold}main{max-width:1200px;margin:16px auto;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px}#stage{position:relative;border:1px solid #53677e;border-radius:14px;overflow:hidden}canvas{display:block;width:100%;height:68vh;min-height:360px}.hud{position:absolute;top:10px;right:10px;left:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.pill{background:#091626dd;border-radius:20px;padding:9px;font-size:13px}aside{background:#182b46;border:1px solid #40546d;border-radius:14px;padding:16px}aside p{font-size:14px;line-height:2}.gold{color:#e9bd65}.overlay{position:absolute;inset:0;background:#07111dcc;display:grid;place-items:center;padding:16px}.dialog{max-width:440px;text-align:center;background:#182b46;border:1px solid #71849b;border-radius:16px;padding:22px;line-height:2}button{border:0;border-radius:9px;background:#e9bd65;color:#172235;font-weight:bold;padding:12px 20px;cursor:pointer}.mobile{display:none;text-align:center;padding:8px}.mobile button{margin:3px;min-width:48px}@media(max-width:800px){main{grid-template-columns:1fr}.mobile{display:block}canvas{height:56vh;min-height:320px}}
-</style></head><body>
-<header>🚔 دایی سرهنگ <span style="font-size:13px;color:#c4d0dd">| نسخه سه‌بعدی لارستان</span> <a href="police-station.html" style="float:left;margin-right:16px;color:#e9bd65;font-size:14px;text-decoration:none">🏢 ورود به اداره پلیس</a></header>
-<main><section><div id="stage"><canvas id="game"></canvas><div class="hud"><div class="pill" id="mission">مأموریت: بررسی خودروی آبی</div><div class="pill" id="cash">موجودی: ۰ تومان</div></div><div class="overlay" id="intro"><div class="dialog"><h1 class="gold">دایی سرهنگ</h1><p>به خیابان‌های سه‌بعدی لارستان خوش آمدی. به خودروی آبی نزدیک شو و با راننده گفت‌وگو کن.</p><p>حرکت: WASD یا کلیدهای جهت‌دار<br>چرخاندن دوربین: کشیدن ماوس روی صحنه<br>تعامل: E</p><button id="start">شروع بازی</button></div></div></div>
-<div class="mobile"><button data-k="ArrowLeft">◀</button><button data-k="ArrowUp">▲</button><button data-k="ArrowDown">▼</button><button data-k="ArrowRight">▶</button><button id="touchE">E تعامل</button></div></section>
-<aside><h2 class="gold">پرونده اول</h2><p>یک خودروی آبی در خیابان اصلی لارستان توجه پلیس را جلب کرده است. نزدیک خودرو شو و با راننده صحبت کن.</p><p>شهر: لارستان<br>درجه: مأمور تازه‌کار<br>پاداش: ۱۰۰ تومان</p><p style="color:#aebed0;font-size:12px">این نسخه سه‌بعدی با WebGL اجرا می‌شود و برای بارگذاری موتور گرافیکی به اینترنت نیاز دارد.</p></aside></main>
+*{box-sizing:border-box}
+body{margin:0;background:#101827;color:#f7f2e8;font-family:Tahoma,Arial}
+header{padding:14px 20px;background:#0b1422;color:#e9bd65;font-size:21px;font-weight:bold;display:flex;justify-content:space-between;gap:12px;align-items:center}
+header a{color:#f2d89f;text-decoration:none;font-size:13px}
+main{max-width:1250px;margin:15px auto;padding:0 12px;display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px}
+#stage{position:relative;border:1px solid #53677e;border-radius:15px;overflow:hidden;box-shadow:0 16px 55px #0006}
+canvas{display:block;width:100%;height:68vh;min-height:390px;touch-action:none}
+.hud{position:absolute;top:11px;right:11px;left:11px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none}
+.pill{background:#091626e8;border:1px solid #53677e;border-radius:20px;padding:9px 12px;font-size:12px}
+aside{background:linear-gradient(145deg,#1c3450,#13243a);border:1px solid #40546d;border-radius:14px;padding:16px}
+aside h2{font-size:18px;color:#e9bd65;margin:4px 0 12px}
+aside p{font-size:13px;line-height:2;color:#e0e7ef}
+.gold{color:#e9bd65}
+.task{background:#0d1c30;border:1px solid #3c536d;border-radius:11px;padding:11px;margin:12px 0;font-size:13px;line-height:2}
+.overlay{position:absolute;inset:0;background:#07111ddf;display:grid;place-items:center;padding:16px;z-index:4}
+.dialog{max-width:480px;text-align:center;background:#182b46;border:1px solid #71849b;border-radius:16px;padding:22px;line-height:2;box-shadow:0 18px 70px #0008}
+.dialog h1{margin:0 0 8px}.dialog p{font-size:14px;color:#dce5ee}
+button{border:0;border-radius:9px;background:#e9bd65;color:#172235;font-weight:bold;padding:12px 20px;cursor:pointer}
+.mobile{display:none;text-align:center;padding:8px;background:#101b2b}
+.mobile button{margin:3px;min-width:48px;touch-action:none}
+#transition{position:fixed;inset:0;background:#000;z-index:10;display:grid;place-items:center;color:#f4e4c4;opacity:0;pointer-events:none;transition:opacity 1s ease}
+#transition.show{opacity:1;pointer-events:auto}
+#transition div{text-align:center;line-height:2;padding:20px}
+#transition h2{color:#e9bd65}
+@media(max-width:850px){main{grid-template-columns:1fr}.mobile{display:block}canvas{height:57vh;min-height:330px}header{font-size:18px}}
+</style>
+</head>
+<body>
+<header><span>🚔 دایی سرهنگ <small style="font-size:12px;color:#c4d0dd">| ماجرای لارستان</small></span><a href="police-station.html">🏢 اداره پلیس</a></header>
+<main>
+<section>
+<div id="stage">
+<canvas id="game"></canvas>
+<div class="hud"><div class="pill" id="mission">مرحله ۱ از ۵ · آماده حرکت</div><div class="pill" id="team">همراهان: ۲ همکار پلیس</div></div>
+<div class="overlay" id="intro"><div class="dialog">
+<h1 class="gold">🚓 مأموریت اول: تعقیب در لارستان</h1>
+<p>با خودروی گشت و کمک دو همکارت حرکت کن. یک خودروی آبی در خیابان جلوتر در حال حرکت است. آن را دنبال کن و وقتی نزدیک شدی، با کلید E توقف امن را انجام بده.</p>
+<p><b>رانندگی:</b> W یا ↑ گاز · S یا ↓ ترمز/عقب · A و D یا ← و → فرمان<br><b>پایان مأموریت:</b> وقتی نزدیک خودرو شدی، E را بزن.</p>
+<button id="start">شروع مرحله اول</button>
+</div></div>
+</div>
+<div class="mobile">
+<button data-key="ArrowLeft">◀</button><button data-key="ArrowUp">▲ گاز</button><button data-key="ArrowDown">▼ ترمز</button><button data-key="ArrowRight">▶</button><button id="touchE">E توقف امن</button>
+</div>
+</section>
+<aside>
+<h2>🚔 پرونده اول: خودروی آبی</h2>
+<p>در خیابان اصلی لارستان یک خودرو بدون توجه به درخواست ایست، مسیرش را ادامه می‌دهد. مأموریت تو رانندگی با خودروی گشت، دنبال‌کردن خودرو و متوقف‌کردن امن آن است.</p>
+<div class="task"><b class="gold">اعضای تیم</b><br>👮 سروان نادر · رانندهٔ کمکی و راهنمای مسیر<br>👮 ستوان مهتاب · هماهنگی و ثبت گزارش</div>
+<div class="task"><b class="gold">مراحل بازی</b><br>۱. رانندگی و دنبال‌کردن خودرو<br>۲. اداره پلیس و بررسی سرنخ‌ها<br>۳. گفت‌وگو با شاهدان<br>۴. حل پروندهٔ دوم<br>۵. پایان پروندهٔ سایه</div>
+<p style="color:#aebed0;font-size:11px">شخصیت‌ها عمداً کارتونی و بامزه طراحی شده‌اند؛ محیط سه‌بعدی شهر با نور و سایه اجرا می‌شود.</p>
+</aside>
+</main>
+<div id="transition"><div><h2>مرحله اول کامل شد!</h2><p>خودرو با موفقیت متوقف شد.<br>در حال رفتن به اداره پلیس و مرحله دوم…</p></div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-const canvas=document.querySelector('#game'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc7dc);scene.fog=new THREE.Fog(0x9fc7dc,48,125);
-const camera=new THREE.PerspectiveCamera(65,1,.1,180);scene.add(new THREE.HemisphereLight(0xffe8c5,0x78634b,2));const sun=new THREE.DirectionalLight(0xffedcf,2);sun.position.set(-25,38,18);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
-const material=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
-function cube(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
-cube(scene,0,-.35,0,120,.6,120,material(0xc3a477));cube(scene,0,-.02,0,11,.12,110,material(0x42474a));cube(scene,0,-.01,0,110,.13,10,material(0x42474a));
-for(let z=-50;z<55;z+=9)cube(scene,0,.06,z,.16,.02,3.5,material(0xe8d8ad));for(let x=-50;x<55;x+=9)cube(scene,x,.06,0,3.5,.02,.16,material(0xe8d8ad));
-const colors=[0xd9bd92,0xcba77b,0xe3cba5,0xb99268,0xd5b58a],spots=[[-19,-18],[-19,3],[-19,25],[19,-20],[19,2],[19,24],[-35,-8],[35,10],[-7,39],[9,40]];
-spots.forEach(([x,z],i)=>{let w=9+(i%3)*1.5,d=8+(i%2)*2,h=6+(i%3);cube(scene,x,h/2,z,w,h,d,material(colors[i%5]));cube(scene,x,h+.12,z,w+.2,.24,d+.2,material(0x9c7654));cube(scene,x,h*.22,z+d/2+.06,1.3,h*.44,.12,material(0x65472f));cube(scene,x-w*.27,h*.65,z+d/2+.06,.9,.8,.12,material(0x83a9b8));cube(scene,x+w*.27,h*.65,z+d/2+.06,.9,.8,.12,material(0x83a9b8))});
-cube(scene,-28,2.7,-39,15,5.4,9,material(0xdfe0d5));cube(scene,-28,5.65,-34.35,7,.7,.12,material(0x183c61));
-const player=new THREE.Group();scene.add(player);player.position.set(0,0,17);const body=new THREE.Mesh(new THREE.CapsuleGeometry(.48,.85,5,10),material(0x1e3551));body.position.y=1.05;player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.31,16,12),material(0xe4bd98));head.position.y=2.05;player.add(head);
-const car=new THREE.Group();scene.add(car);car.position.set(5,0,1);cube(car,0,.68,0,3.7,1.05,1.85,material(0x15518c));cube(car,0,1.38,-.12,2.05,.78,1.55,material(0x8eb6c7));for(const x of [-1.22,1.22])for(const z of [-.78,.78]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),material(0x17191b));w.rotation.x=Math.PI/2;w.position.set(x,.38,z);car.add(w)}
-let yaw=0,pitch=-.22,started=false,done=false;const keys={};function resize(){let r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
-function interact(){if(done)return;if(Math.hypot(player.position.x-car.position.x,player.position.z-car.position.z)<4.5){done=true;document.querySelector('#cash').textContent='موجودی: ۱۰۰ تومان';document.querySelector('#mission').textContent='مأموریت: تکمیل شد'}else document.querySelector('#mission').textContent='به خودروی آبی نزدیک‌تر شو!'}
-addEventListener('keydown',e=>{keys[e.code]=true;if(e.code.startsWith('Arrow'))e.preventDefault();if(e.code==='KeyE')interact()});addEventListener('keyup',e=>keys[e.code]=false);
-let drag=false,lx=0,ly=0;canvas.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointermove',e=>{if(!drag||!started)return;yaw-=(e.clientX-lx)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-ly)*.003,-.65,.35);lx=e.clientX;ly=e.clientY});
-document.querySelectorAll('[data-k]').forEach(b=>{let k=b.dataset.k;b.onpointerdown=e=>{e.preventDefault();keys[k]=true};['pointerup','pointerleave','pointercancel'].forEach(v=>b.addEventListener(v,()=>keys[k]=false))});document.querySelector('#touchE').onclick=interact;document.querySelector('#start').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);let dt=Math.min(clock.getDelta(),.04);if(started&&!done){let f=0,s=0;if(keys.KeyW||keys.ArrowUp)f=-1;if(keys.KeyS||keys.ArrowDown)f=1;if(keys.KeyA||keys.ArrowLeft)s=-1;if(keys.KeyD||keys.ArrowRight)s=1;let n=Math.hypot(f,s)||1;f/=n;s/=n;let forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),move=forward.multiplyScalar(f).add(right.multiplyScalar(s));player.position.addScaledVector(move,6*dt);player.position.x=THREE.MathUtils.clamp(player.position.x,-48,48);player.position.z=THREE.MathUtils.clamp(player.position.z,-48,48);if(move.lengthSq()>.001)player.rotation.y=Math.atan2(move.x,move.z);if(Math.hypot(player.position.x-car.position.x,player.position.z-car.position.z)<4.5)document.querySelector('#mission').textContent='نزدیک خودرو هستی؛ E را بزن'}let target=new THREE.Vector3(player.position.x,1.65,player.position.z),offset=new THREE.Vector3(Math.sin(yaw)*8.5,3.3+pitch*4,Math.cos(yaw)*8.5);camera.position.copy(target).add(offset);camera.lookAt(target);renderer.render(scene,camera)}animate();
-</script></body></html>
+const canvas=document.querySelector('#game');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc8df);scene.fog=new THREE.Fog(0x9fc8df,65,155);
+const camera=new THREE.PerspectiveCamera(65,1,.1,220);
+scene.add(new THREE.HemisphereLight(0xffe8cd,0x77644f,2.15));
+const sun=new THREE.DirectionalLight(0xffedcf,2.5);sun.position.set(-28,45,22);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-75;sun.shadow.camera.right=75;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);
+const mat=(c,r=.86,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+function box(parent,x,y,z,w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+const sand=mat(0xc5a77d),road=mat(0x3e454b),sidewalk=mat(0xd6c19d),white=mat(0xf1e7d2),dark=mat(0x202630),glass=new THREE.MeshStandardMaterial({color:0x9dc6d4,roughness:.24,metalness:.12});
+box(scene,0,-.5,0,150,1,150,sand);
+box(scene,0,-.02,0,120,.12,11,road);
+box(scene,0,.01,0,120,.15,15,sidewalk);
+box(scene,0,.06,0,120,.08,10.4,road);
+for(let x=-55;x<60;x+=10){box(scene,x,.12,0,4,.025,.16,white)}
+// Sidewalk strips and a cross street.
+box(scene,0,.03,-10.7,120,.2,1.4,sidewalk);box(scene,0,.03,10.7,120,.2,1.4,sidewalk);
+box(scene,38,.02,0,10,.12,100,road);
+for(let z=-45;z<50;z+=9)box(scene,38,.11,z, .16,.025,3.2,white);
+// Low-poly Larestan-style town blocks.
+const buildingColors=[0xd8bd98,0xcaa77e,0xe3cba6,0xb99670,0xdfc49b,0xc5a17b];
+function building(x,z,w,d,h,i){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ box(g,0,h/2,0,w,h,d,mat(buildingColors[i%buildingColors.length]));
+ box(g,0,h+.12,0,w+.3,.24,d+.3,mat(0x957452));
+ box(g,0,1.25,d/2+.04,1.4,2.5,.12,mat(0x704d36));
+ for(let xx of [-w*.27,w*.27]){box(g,xx, h*.62,d/2+.045,1.05,1.05,.12,glass);box(g,xx,h*.62+.58,d/2+.11,1.15,.09,.1,mat(0x76583b))}
+ box(g,0,2.8,d/2+.15,w*.63,.35,.35,mat(i%2?0x54716d:0x9d5b42));
+ return g;
+}
+[[-22,-18,13,12,9],[-22,1,13,12,7],[-22,21,13,13,10],[-43,-17,12,12,8],[-43,10,12,12,7],[20,-20,13,12,8],[20,3,13,12,10],[20,23,13,12,8],[56,-18,12,12,9],[56,10,12,12,8]].forEach((p,i)=>building(...p,i));
+function palm(x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.22,.34,4.3,7),mat(0x88613c));trunk.position.y=2.15;trunk.castShadow=true;g.add(trunk);
+ for(let i=0;i<6;i++){const leaf=new THREE.Mesh(new THREE.ConeGeometry(.22,3.3,5),mat(0x4c7954));leaf.position.y=4.1;leaf.rotation.z=Math.PI/2;leaf.rotation.y=i*Math.PI/3;leaf.castShadow=true;g.add(leaf)}
+}
+for(const p of [[-31,-8],[-31,16],[29,-9],[29,17],[48,-8],[48,18]])palm(...p);
+for(let x=-52;x<=52;x+=18){
+ const pole=box(scene,x,2.6,-8.4,.16,5.2,.16,mat(0x343b40));
+ box(scene,x,5.15,-8.1,.65,.14,.5,mat(0xffdf9b));
+ const lamp=new THREE.PointLight(0xffdca1,2,13);lamp.position.set(x,4.9,-8);scene.add(lamp);
+}
+// Comedic, stylised people with oversized heads and simple faces.
+function person(name,x,z,uniform=false,scale=1){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(scale);scene.add(g);
+ const clothes=mat(uniform?0x263e5b:[0x9b5844,0x557a75,0xb27c39,0x6a5d8e][Math.floor(Math.abs(x+z))%4]);
+ const skin=mat(0xe6b992),hair=mat(0x392d29),boots=mat(0x292a2c),gold=mat(0xe0b85f);
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.34,.68,4,8),clothes);torso.position.y=.98;torso.castShadow=true;g.add(torso);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.39,16,12),skin);head.position.y=1.85;head.scale.set(1,1.08,.94);head.castShadow=true;g.add(head);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.4,12,8,0,Math.PI*2,0,Math.PI*.45),uniform?mat(0x1c2d43):hair);cap.position.set(0,2.12,0);g.add(cap);
+ for(const ex of [-.14,.14]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),dark);eye.position.set(ex,1.92,.34);g.add(eye)}
+ const nose=new THREE.Mesh(new THREE.SphereGeometry(.065,8,8),skin);nose.position.set(0,1.79,.37);g.add(nose);
+ const smile=new THREE.Mesh(new THREE.TorusGeometry(.11,.018,6,12,Math.PI),mat(0x633c32));smile.position.set(0,1.69,.34);smile.rotation.z=Math.PI;g.add(smile);
+ if(uniform){const badge=new THREE.Mesh(new THREE.CircleGeometry(.09,8),gold);badge.position.set(.22,1.15,.29);g.add(badge)}
+ for(const side of [-1,1]){const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.11,.48,3,6),clothes);arm.position.set(side*.42,.98,0);arm.rotation.z=side*.15;g.add(arm)}
+ const legMat=boots;for(const side of [-1,1]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.12,.42,3,6),legMat);leg.position.set(side*.17,.36,0);g.add(leg)}
+ g.userData.baseY=0;g.userData.walk=Math.random()*6;
+ return g;
+}
+// Town residents and uniformed colleagues along the pavements.
+const pedestrians=[];
+[[-28,-7,false],[-12,-7,true],[4,-7,false],[26,-7,false],[-36,7,false],[-7,7,true],[17,7,false],[48,7,false],[50,-4,true]].forEach(([x,z,u],i)=>pedestrians.push(person(i===1?'همکار نادر':i===5?'همکار مهتاب':'شهروند',x,z,u,.85)));
+const sign=box(scene,-22,5.9,-25,8,1.1,.25,mat(0x24445b));sign.position.z=-24;
+const labelCanvas=document.createElement('canvas');labelCanvas.width=512;labelCanvas.height=128;const ctx=labelCanvas.getContext('2d');ctx.fillStyle='#24445b';ctx.fillRect(0,0,512,128);ctx.fillStyle='#f5dfae';ctx.font='bold 48px Tahoma';ctx.textAlign='center';ctx.fillText('لارستان · شهر آفتاب',256,82);
+const labelTex=new THREE.CanvasTexture(labelCanvas);const signText=new THREE.Mesh(new THREE.PlaneGeometry(7.8,1.7),new THREE.MeshBasicMaterial({map:labelTex,transparent:true}));signText.position.set(-22,5.9,-24.85);scene.add(signText);
+// Car builder. Player has a tiny funny partner visible through the windscreen.
+function makeCar(color,police=false){
+ const g=new THREE.Group();const paint=mat(color,.38,.18);
+ box(g,0,.72,0,2.35,.92,4.35,paint);
+ box(g,0,1.42,-.12,1.9,.85,2.35,glass);
+ box(g,0,1.05,-2.1,2.2,.22,.18,mat(0x242b32));
+ for(const x of [-1.05,1.05])for(const z of [-1.35,1.35]){
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.24,16),dark);w.rotation.z=Math.PI/2;w.position.set(x,.43,z);g.add(w);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.25,12),mat(0x9ca5a9,.38,.5));hub.rotation.z=Math.PI/2;hub.position.set(x*1.005,.43,z);g.add(hub);
+ }
+ box(g,-.72,1.88,.1,.72,.22,.5,mat(0x1e2936));box(g,.72,1.88,.1,.72,.22,.5,mat(0x1e2936));
+ if(police){
+  box(g,0,2.0,-.2,.92,.15,.35,mat(0xe8e8dc));
+  box(g,-.28,2.13,-.2,.32,.13,.25,mat(0xc84d49));box(g,.28,2.13,-.2,.32,.13,.25,mat(0x4b89c5));
+  const partner=person('همکار داخل خودرو',.48,0,true,.43);partner.position.set(.48,0,-.05);g.add(partner);
+ }
+ return g;
+}
+const patrol=makeCar(0x244f79,true);patrol.position.set(-27,0,0);patrol.rotation.y=-Math.PI/2;scene.add(patrol);
+const suspect=makeCar(0x1587a0,false);suspect.position.set(2,0,0);suspect.rotation.y=-Math.PI/2;scene.add(suspect);
+let targetX=2, speed=0, yaw=-Math.PI/2, started=false, readyToStop=false, finished=false;
+const keys={};
+function resize(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(canvas);resize();
+function pressKey(code,on){keys[code]=on}
+addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();pressKey(e.code,true);if(e.code==='KeyE')interact()});
+addEventListener('keyup',e=>pressKey(e.code,false));
+document.querySelectorAll('[data-key]').forEach(b=>{const k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(k,true)});['pointerup','pointerleave','pointercancel'].forEach(v=>b.addEventListener(v,()=>pressKey(k,false)))});
+document.querySelector('#touchE').onclick=interact;
+document.querySelector('#start').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
+function interact(){
+ if(!started||finished)return;
+ if(readyToStop){finished=true;speed=0;document.querySelector('#mission').textContent='مرحله ۱ کامل شد';document.querySelector('#transition').classList.add('show');setTimeout(()=>location.href='police-station.html?level=2',1900)}
+ else document.querySelector('#mission').textContent='هنوز دوری؛ با خودروی گشت به ماشین آبی نزدیک شو.';
+}
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+ if(started&&!finished){
+  const gas=keys.KeyW||keys.ArrowUp, brake=keys.KeyS||keys.ArrowDown;
+  if(gas)speed=Math.min(15,speed+9*dt);else if(brake)speed=Math.max(-4,speed-13*dt);else speed*=Math.pow(.975,dt*60);
+  const left=keys.KeyA||keys.ArrowLeft,right=keys.KeyD||keys.ArrowRight;
+  if(left)yaw+=1.35*dt*Math.max(.35,Math.abs(speed)/8);
+  if(right)yaw-=1.35*dt*Math.max(.35,Math.abs(speed)/8);
+  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  patrol.position.addScaledVector(forward,speed*dt);patrol.rotation.y=yaw;
+  patrol.position.x=THREE.MathUtils.clamp(patrol.position.x,-48,48);patrol.position.z=THREE.MathUtils.clamp(patrol.position.z,-4.5,4.5);
+  targetX=Math.min(34,targetX+2.65*dt);suspect.position.x=targetX;suspect.position.z=0;
+  const dist=patrol.position.distanceTo(suspect.position);
+  if(dist<7){readyToStop=true;document.querySelector('#mission').textContent='نزدیک خودرو شدی · E را برای توقف امن بزن';}
+  else{readyToStop=false;document.querySelector('#mission').textContent='مرحله ۱ از ۵ · فاصله تا خودرو: '+Math.round(dist)+' متر'}
+ }
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const follow=patrol.position.clone().addScaledVector(forward,-10);follow.y+=5.3;
+ camera.position.lerp(follow,.12);
+ const look=patrol.position.clone().addScaledVector(forward,5);look.y+=1.3;camera.lookAt(look);
+ for(const p of pedestrians){p.userData.walk+=dt;const bob=Math.sin(p.userData.walk*2)*.025;p.position.y=bob}
+ renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
