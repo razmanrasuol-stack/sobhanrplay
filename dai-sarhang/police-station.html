@@ -10,7 +10,7 @@ header{height:62px;padding:13px 20px;background:#0a1422;border-bottom:1px solid 
 header strong{font-size:20px;color:var(--gold)}header a{color:#f1d59b;text-decoration:none;font-size:13px}
 main{max-width:1450px;margin:14px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:14px}
 #viewport{position:relative;min-height:620px;height:calc(100vh - 95px);max-height:900px;border:1px solid #495c70;border-radius:14px;overflow:hidden;background:#8798a4}
-canvas{width:100%;height:100%;display:block;touch-action:none}
+canvas{width:100%;height:100%;display:block;touch-action:none}.crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff8dc;font:22px Arial;text-shadow:0 1px 5px #000;pointer-events:none}.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 48%,#07111b66 100%);box-shadow:inset 0 0 90px #07111b55}
 .hud{position:absolute;top:12px;right:12px;left:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
 .chip{background:#0b1728e8;border:1px solid #52667d;border-radius:30px;padding:9px 13px;font-size:12px}
 .hint{position:absolute;bottom:12px;right:12px;background:#0b1728e8;border-radius:9px;padding:10px 13px;color:#e8d5ae;font-size:12px}
@@ -30,8 +30,8 @@ button{background:var(--gold);color:#172235;border:0;border-radius:8px;padding:1
 <main>
 <section id="viewport">
 <canvas id="scene"></canvas>
-<div class="hud"><div class="chip" id="objective">پرونده: بررسی سرنخ‌های اولیه</div><div class="chip">محیط سه‌بعدی آزمایشی</div></div>
-<div class="hint">حرکت: WASD یا فلش‌ها · چرخش دید: کشیدن ماوس · بررسی: کلیک روی اشیا یا E</div>
+<div class="hud"><div class="chip" id="objective">پرونده: بررسی سرنخ‌های اولیه</div><div class="chip">گرافیک ارتقایافته · نمای اول‌شخص</div></div>
+<div class="hint">WASD حرکت · ماوس نگاه · E بررسی · کیفیت گرافیک: بالا</div><div class="crosshair">+</div><div class="vignette"></div>
 <div class="overlay" id="intro"><div class="dialog"><h1>اداره پلیس لارستان</h1><p>به مرکز تحقیقات خوش آمدی. در این اتاق می‌توانی تابلوی پرونده، گزارش نگهبانی و پوشهٔ قدیمی دایی سرهنگ را بررسی کنی.</p><p>این بخش یک نمونهٔ اولیهٔ قابل‌بازی است؛ برای حرکت از WASD و برای بررسی اشیا از کلیک یا کلید E استفاده کن.</p><button id="begin">ورود به اداره</button></div></div>
 </section>
 <aside>
@@ -45,18 +45,28 @@ button{background:var(--gold);color:#172235;border:0;border-radius:8px;padding:1
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 const canvas=document.querySelector('#scene'),host=document.querySelector('#viewport');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x8799a5);scene.fog=new THREE.Fog(0x8799a5,22,48);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x8799a5);scene.fog=new THREE.Fog(0x8799a5,28,62);
 const camera=new THREE.PerspectiveCamera(62,1,.1,90);
 scene.add(new THREE.HemisphereLight(0xf5e7ce,0x354252,2.0));
-const keyLight=new THREE.DirectionalLight(0xffe4b5,2.25);keyLight.position.set(-6,11,7);keyLight.castShadow=true;keyLight.shadow.mapSize.set(1024,1024);scene.add(keyLight);
-const fill=new THREE.PointLight(0xc5d8ee,22,17);fill.position.set(5,4,-2);scene.add(fill);
+const keyLight=new THREE.DirectionalLight(0xffe4b5,2.25);keyLight.position.set(-6,11,7);keyLight.castShadow=true;keyLight.shadow.mapSize.set(2048,2048);keyLight.shadow.camera.left=-13;keyLight.shadow.camera.right=13;keyLight.shadow.camera.top=12;keyLight.shadow.camera.bottom=-12;keyLight.shadow.bias=-0.00018;scene.add(keyLight);
+const fill=new THREE.PointLight(0xc5d8ee,28,20);fill.position.set(5,4,-2);scene.add(fill);const warmBounce=new THREE.PointLight(0xffc77b,18,13);warmBounce.position.set(-4,2.5,3);scene.add(warmBounce);
 const mat=(c,r=.82,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const mats={wall:mat(0xd5c9b4),floor:mat(0x777d80),trim:mat(0x4a3d31),wood:mat(0x61472f),dark:mat(0x172536),blue:mat(0x244967),glass: new THREE.MeshStandardMaterial({color:0x83b2c7,roughness:.25,metalness:.1}),paper:mat(0xe7ddc8),gold:mat(0xc89d55,.5,.25),green:mat(0x315346),red:mat(0x7e3434)};
+function proceduralTexture(base,accent,rx=3,ry=3,grain=.12){
+ const cn=document.createElement('canvas');cn.width=512;cn.height=512;const ctx=cn.getContext('2d');
+ ctx.fillStyle=base;ctx.fillRect(0,0,512,512);
+ for(let i=0;i<17000;i++){ctx.globalAlpha=Math.random()*grain;ctx.fillStyle=accent;ctx.fillRect(Math.random()*512,Math.random()*512,1+Math.random()*2,1+Math.random()*2)}
+ ctx.globalAlpha=1;const t=new THREE.CanvasTexture(cn);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t;
+}
+const floorMat=new THREE.MeshStandardMaterial({map:proceduralTexture('#77736b','#c4b9a2',8,7,.24),roughness:.92});
+const wallMat=new THREE.MeshStandardMaterial({map:proceduralTexture('#cfc3ad','#fff1d7',4,3,.08),roughness:.96});
+const woodMat=new THREE.MeshStandardMaterial({map:proceduralTexture('#61472f','#d5a46d',3,2,.18),roughness:.72});
+const paperMat=new THREE.MeshStandardMaterial({map:proceduralTexture('#e7ddc8','#fff9e9',1,1,.06),roughness:.98});
+const mats={wall:wallMat,floor:floorMat,trim:mat(0x4a3d31),wood:woodMat,dark:mat(0x172536),blue:mat(0x244967),glass: new THREE.MeshStandardMaterial({color:0x83b2c7,roughness:.25,metalness:.1}),paper:paperMat,gold:mat(0xc89d55,.5,.25),green:mat(0x315346),red:mat(0x7e3434)};
 function box(parent,name,x,y,z,w,h,d,material,interactive=false){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.name=name;o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);if(interactive)o.userData.interactive=true;return o}
 const room=new THREE.Group();scene.add(room);
 // floor and four wall sections, with a clear doorway in the back wall
-box(room,'کف اتاق',0,-.16,0,18,.32,14,mat(0x777c80));
+box(room,'کف اتاق',0,-.16,0,18,.32,14,mats.floor);
 box(room,'دیوار چپ',-9,2.2,0,.25,4.6,14,mats.wall);
 box(room,'دیوار راست',9,2.2,0,.25,4.6,14,mats.wall);
 box(room,'دیوار عقب چپ',-4.5,2.2,-7,9,4.6,.25,mats.wall);
@@ -78,7 +88,7 @@ box(room,'پنل سقف',0,4.55,0,17.8,.16,13.8,mat(0xc5bdad));
 for(const x of [-4,0,4]){box(room,'چراغ سقفی',x,4.42,0,1.5,.08,.55,mat(0xffedc4,0.25));const l=new THREE.PointLight(0xffe4b8,7,10);l.position.set(x,4.2,0);scene.add(l)}
 // reception desk, monitor and chair
 box(room,'میز افسر',-3,.75,2.1,4.3,1.15,1.65,mats.wood);
-box(room,'صفحه میز',-3,1.38,2.1,4.45,.12,1.8,mat(0x8a6748));
+box(room,'صفحه میز',-3,1.38,2.1,4.45,.12,1.8,woodMat);
 box(room,'مانیتور',-3,2.1,1.55,1.45,1.1,.16,mats.dark);
 box(room,'صفحه روشن مانیتور',-3,2.12,1.44,1.25,.82,.025,mat(0x39778a,.3));
 box(room,'کیبورد',-3,1.48,2.65,1.15,.08,.38,mat(0x202a35));
