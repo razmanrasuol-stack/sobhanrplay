@@ -116,6 +116,39 @@ canvas.addEventListener('pointerdown',e=>{if(!started)return;const r=canvas.getB
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'&&nearest)inspect({object:nearest})});addEventListener('keyup',e=>keys[e.code]=false);
 let dragging=false,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});addEventListener('pointerup',()=>dragging=false);addEventListener('pointermove',e=>{if(!dragging||!started)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.55,.35);lastX=e.clientX;lastY=e.clientY});
 document.querySelector('#begin').onclick=()=>{started=true;document.querySelector('#intro').style.display='none'};
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.045);if(started){let f=(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0),s=(keys.KeyA||keys.ArrowLeft?-1:0)+(keys.KeyD||keys.ArrowRight?1:0);let forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));const move=forward.multiplyScalar(f).add(right.multiplyScalar(s));if(move.lengthSq()>0){move.normalize();player.position.addScaledVector(move,3.8*dt);player.rotation.y=Math.atan2(move.x,move.z)}player.position.x=THREE.MathUtils.clamp(player.position.x,-8,8);player.position.z=THREE.MathUtils.clamp(player.position.z,-6.2,6.1);let min=99;nearest=null;for(const o of interactives){const dist=o.getWorldPosition(new THREE.Vector3()).distanceTo(player.position);if(dist<min){min=dist;nearest=o}}if(min>5)nearest=null;}
-const target=new THREE.Vector3(player.position.x,1.5,player.position.z);const offset=new THREE.Vector3(Math.sin(yaw)*7,2.5+pitch*3,Math.cos(yaw)*7);camera.position.copy(target).add(offset);camera.lookAt(target);renderer.render(scene,camera)}animate();
-</script></body></html>
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.045);
+ if(started){
+  let f=(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0);
+  let s=(keys.KeyA||keys.ArrowLeft?-1:0)+(keys.KeyD||keys.ArrowRight?1:0);
+  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  const move=forward.multiplyScalar(f).add(right.multiplyScalar(s));
+  if(move.lengthSq()>0){
+   move.normalize();
+   player.position.addScaledVector(move,3.8*dt);
+   player.rotation.y=Math.atan2(move.x,move.z);
+  }
+  player.position.x=THREE.MathUtils.clamp(player.position.x,-8,8);
+  player.position.z=THREE.MathUtils.clamp(player.position.z,-6.2,6.1);
+  let min=99;nearest=null;
+  for(const o of interactives){
+   const dist=o.getWorldPosition(new THREE.Vector3()).distanceTo(player.position);
+   if(dist<min){min=dist;nearest=o}
+  }
+  if(min>5)nearest=null;
+ }
+ // First-person camera: place the camera at the officer's eye height.
+ const eye=new THREE.Vector3(player.position.x,player.position.y+1.62,player.position.z);
+ const lookDirection=new THREE.Vector3(
+  -Math.sin(yaw)*Math.cos(pitch),
+  Math.sin(pitch),
+  -Math.cos(yaw)*Math.cos(pitch)
+ );
+ camera.position.copy(eye);
+ camera.lookAt(eye.clone().add(lookDirection));
+ renderer.render(scene,camera);
+}
+animate();</script></body></html>
