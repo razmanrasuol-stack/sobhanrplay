@@ -30,14 +30,15 @@ button{background:var(--gold);color:#172235;border:0;border-radius:8px;padding:1
 <main>
 <section id="viewport">
 <canvas id="scene"></canvas>
-<div class="hud"><div class="chip" id="objective">پرونده: بررسی سرنخ‌های اولیه</div><div class="chip">گرافیک ارتقایافته · نمای اول‌شخص</div></div>
+<div class="hud"><div class="chip" id="objective">مرحله ۲ از ۵ · بررسی سرنخ‌ها و همکاران</div><div class="chip">گرافیک ارتقایافته · نمای اول‌شخص</div></div>
 <div class="hint">WASD حرکت · ماوس نگاه · E بررسی · کیفیت گرافیک: بالا</div><div class="crosshair">+</div><div class="vignette"></div>
-<div class="overlay" id="intro"><div class="dialog"><h1>اداره پلیس لارستان</h1><p>به مرکز تحقیقات خوش آمدی. در این اتاق می‌توانی تابلوی پرونده، گزارش نگهبانی و پوشهٔ قدیمی دایی سرهنگ را بررسی کنی.</p><p>این بخش یک نمونهٔ اولیهٔ قابل‌بازی است؛ برای حرکت از WASD و برای بررسی اشیا از کلیک یا کلید E استفاده کن.</p><button id="begin">ورود به اداره</button></div></div>
+<div class="overlay" id="intro"><div class="dialog"><h1>اداره پلیس لارستان</h1><p>به مرحله دوم خوش آمدی! سه همکار کارتونی در اداره منتظرند تا گزارششان را بدهند. سرنخ‌های روی تابلو و پوشه قدیمی را هم بررسی کن.</p><p>با WASD حرکت کن؛ برای گفت‌وگو با همکاران یا بررسی سرنخ‌ها نزدیک شو و E یا کلیک را بزن. بعد از تکمیل این بخش، مرحله گفت‌وگو با شاهد اصلی آغاز می‌شود.</p><button id="begin">ورود به اداره</button></div></div>
 </section>
 <aside>
 <h2>اتاق تحقیقات</h2>
-<p>پس از ترخیص از بیمارستان، دایی سرهنگ برای همکاری به اداره پلیس آمده است. افسر مسئول از او می‌خواهد سرنخ‌ها را مرور کند و دربارهٔ پروندهٔ سایه با دقت تصمیم بگیرد.</p>
-<div class="task"><b style="color:var(--gold)">هدف این بخش</b><br>سه مورد را بررسی کن: تابلوی پرونده، گزارش نگهبانی و پوشهٔ قدیمی.</div>
+<p>پس از توقف خودروی آبی، دایی سرهنگ همراه تیمش به اداره آمده است. سروان نادر، ستوان مهتاب و کارشناس فرهاد به او کمک می‌کنند تا گزارش‌ها را کنار هم بگذارد.</p>
+<div class="task"><b style="color:var(--gold)">مرحله ۲: اداره پلیس</b><br>سه سرنخ را بررسی کن و با هر سه همکار صحبت کن. سپس مرحله ۳، گفت‌وگو با شاهد اصلی، آغاز می‌شود.</div>
+<div class="task"><b style="color:var(--gold)">ادامه داستان</b><br>۳. گفت‌وگو با شاهدان<br>۴. بررسی پرونده دوم و پیدا کردن تناقض‌ها<br>۵. نزدیک‌شدن به راز سایه</div>
 <h2>یادداشت‌های پرونده</h2><div id="result">هنوز سرنخی بررسی نشده است.</div>
 <p style="font-size:11px;color:#aebdcb">برای حرکت در اتاق به اینترنت جهت بارگذاری موتور سه‌بعدی نیاز است. این بخش به‌تنهایی ذخیرهٔ آنلاین یا چندنفره ندارد.</p>
 </aside>
@@ -112,6 +113,25 @@ box(room,'چراغ مطالعه',6,1.08,1.7,.35,.85,.35,mats.gold);
 // wall sign
 box(room,'تابلوی اداره',0,3.85,6.82,3.5,.65,.14,mats.blue);
 box(room,'نشان پلیس',0,3.83,6.72,.55,.42,.08,mats.gold);
+// Cartoon teammates and a witness make the station feel populated.
+function addCartoonNpc(name,x,z,uniform=true,shirtColor=0x29445f){
+ const g=new THREE.Group();g.position.set(x,0,z);room.add(g);
+ const shirt=mat(shirtColor),skin=mat(0xe4b995),hair=mat(0x382c27),shoe=mat(0x262a2e),badge=mat(0xe2b85f);
+ const body=new THREE.Mesh(new THREE.CapsuleGeometry(.34,.62,4,8),shirt);body.position.y=.9;body.name=name;body.userData.interactive=true;body.castShadow=true;g.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.34,16,12),skin);head.position.y=1.72;head.scale.set(1,1.08,.95);head.castShadow=true;g.add(head);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.36,12,8,0,Math.PI*2,0,Math.PI*.48),uniform?mat(0x192d43):hair);cap.position.y=1.98;g.add(cap);
+ for(const ex of [-.13,.13]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),mat(0x20252b));eye.position.set(ex,1.78,.29);g.add(eye)}
+ const nose=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),skin);nose.position.set(0,1.66,.32);g.add(nose);
+ const smile=new THREE.Mesh(new THREE.TorusGeometry(.1,.016,6,12,Math.PI),mat(0x633c32));smile.position.set(0,1.57,.3);smile.rotation.z=Math.PI;g.add(smile);
+ for(const side of [-1,1]){const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.1,.42,3,6),shirt);arm.position.set(side*.4,.95,0);arm.rotation.z=side*.14;g.add(arm);const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.11,.4,3,6),shoe);leg.position.set(side*.16,.31,0);g.add(leg)}
+ if(uniform){const pin=new THREE.Mesh(new THREE.CircleGeometry(.075,8),badge);pin.position.set(.2,1.1,.28);g.add(pin)}
+ return g;
+}
+addCartoonNpc('همکار نادر',-.55,1.15,true,0x29445f);
+addCartoonNpc('همکار مهتاب',2.6,.5,true,0x38546c);
+addCartoonNpc('همکار فرهاد',-6.1,-1.8,true,0x344b64);
+addCartoonNpc('شاهد اصلی',5.7,-4.6,false,0x94613e);
+
 // player
 const player=new THREE.Group();scene.add(player);player.position.set(0,0,4.7);
 const body=new THREE.Mesh(new THREE.CapsuleGeometry(.36,.7,4,8),mat(0x243b55));body.position.y=.92;player.add(body);
@@ -122,8 +142,48 @@ body.visible=false;head.visible=false;
 const interactives=[];room.traverse(o=>{if(o.isMesh&&o.userData.interactive)interactives.push(o)});
 const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let yaw=0,pitch=-.18,started=false,nearest=null;
 function resize(){const r=host.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(host);resize();
-function describe(hit){const n=hit.object.name;let d='این وسیله بخشی از اداره پلیس است.';if(n.includes('تابلو'))d='تابلوی پرونده چند یادداشت و شاهد متناقض را کنار هم قرار می‌دهد. روی هر کارت کلیک کن تا اطلاعات همان سرنخ را بخوانی.';else if(n.includes('گزارش'))d=clueData[1].desc;else if(n.includes('زمان'))d=clueData[2].desc;else if(n.includes('پوشه'))d='پوشهٔ قدیمی شامل یادداشت‌هایی دربارهٔ گذشتهٔ دایی سرهنگ است. بعضی اطلاعات آن هنوز نیاز به تأیید دارند.';return d}
-function inspect(hit){if(!hit)return;const n=hit.object.name;let d=describe(hit);const clue=clueData.find(c=>n===c.t);if(clue)d=clue.desc;document.querySelector('#result').textContent=d;document.querySelector('#objective').textContent='سرنخ بررسی شد: '+n}
+let currentStage=2;const stageTwoDone=new Set();
+function describe(hit){
+ const n=hit.object.name;
+ if(n==='همکار نادر')return 'سروان نادر می‌گوید خودروی آبی از خیابان اصلی به سمت میدان حرکت کرد. او پیشنهاد می‌کند گزارش دوربین چهارراه هم بررسی شود.';
+ if(n==='همکار مهتاب')return 'ستوان مهتاب گزارش زمانی را ثبت کرده است. او می‌گوید زمان نوشته‌شده روی برگه تقریبی است و نباید آن را به‌تنهایی مدرک قطعی دانست.';
+ if(n==='همکار فرهاد')return 'کارشناس فرهاد می‌گوید دو گزارش با هم اختلاف کوچکی دارند. بهتر است پیش از نتیجه‌گیری، حرف شاهد را هم بشنوید.';
+ if(n==='شاهد اصلی')return 'شاهد می‌گوید خودرو را کنار میدان دیده، اما درباره ساعت عبورش مطمئن نیست. این گفته باید با گزارش نگهبانی مقایسه شود.';
+ let d='این وسیله بخشی از اداره پلیس است.';
+ if(n.includes('تابلو'))d='تابلوی پرونده چند یادداشت و شاهد متناقض را کنار هم قرار می‌دهد. روی هر کارت کلیک کن تا اطلاعات همان سرنخ را بخوانی.';
+ else if(n.includes('گزارش'))d=clueData[1].desc;
+ else if(n.includes('زمان'))d=clueData[2].desc;
+ else if(n.includes('پوشه'))d='پوشهٔ قدیمی شامل یادداشت‌هایی دربارهٔ گذشتهٔ دایی سرهنگ است. بعضی اطلاعات آن هنوز نیاز به تأیید دارند.';
+ return d;
+}
+function inspect(hit){
+ if(!hit)return;
+ const n=hit.object.name;
+ if(n==='شاهد اصلی'&&currentStage<3){
+  document.querySelector('#result').textContent='برای گفت‌وگو با شاهد، اول سه سرنخ و گزارش هر سه همکار را بررسی کن.';
+  return;
+ }
+ const d=describe(hit),clue=clueData.find(c=>n===c.t);
+ document.querySelector('#result').textContent=clue?clue.desc:d;
+ if(currentStage===2){
+  if(clue||['همکار نادر','همکار مهتاب','همکار فرهاد'].includes(n))stageTwoDone.add(n);
+  document.querySelector('#objective').textContent='مرحله ۲ از ۵ · '+stageTwoDone.size+' از ۶ بررسی شد';
+  if(stageTwoDone.size>=6){
+   currentStage=3;
+   document.querySelector('#objective').textContent='مرحله ۳ از ۵ · با شاهد اصلی گفت‌وگو کن';
+   document.querySelector('#result').textContent='همه سرنخ‌ها و گزارش همکاران بررسی شد. حالا به شاهد اصلی نزدیک شو و با او صحبت کن.';
+  }
+ }else if(currentStage===3&&n==='شاهد اصلی'){
+  currentStage=4;
+  document.querySelector('#objective').textContent='مرحله ۴ از ۵ · پوشه قدیمی را بررسی کن';
+  document.querySelector('#result').textContent='گفت‌وگوی شاهد ثبت شد. گفته او با بخشی از گزارش‌ها تفاوت دارد؛ حالا پوشه قدیمی را بررسی کن تا تناقض‌ها روشن‌تر شوند.';
+ }else if(currentStage===4&&n.includes('پوشه')){
+  currentStage=5;
+  document.querySelector('#objective').textContent='مرحله ۵ از ۵ · پرونده سایه آماده بررسی است';
+  document.querySelector('#result').textContent='مرحله‌های اداره پلیس کامل شد! تیم حالا اطلاعات اولیه لازم را برای ادامه پرونده سایه در اختیار دارد.';
+ }
+}
+
 canvas.addEventListener('pointerdown',e=>{if(!started)return;const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(interactives,false);if(hits.length)inspect(hits[0])});
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'&&nearest)inspect({object:nearest})});addEventListener('keyup',e=>keys[e.code]=false);
 let dragging=false,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});addEventListener('pointerup',()=>dragging=false);addEventListener('pointermove',e=>{if(!dragging||!started)return;yaw-=(e.clientX-lastX)*.006;pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.55,.35);lastX=e.clientX;lastY=e.clientY});
